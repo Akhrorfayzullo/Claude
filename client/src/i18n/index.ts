@@ -5,9 +5,9 @@ import ko from './locales/ko.json'
 import uz from './locales/uz.json'
 
 export const SUPPORTED_LANGUAGES = [
-  { code: 'en', label: 'English' },
-  { code: 'ko', label: '한국어' },
-  { code: 'uz', label: "O'zbekcha" },
+  { code: 'en', label: 'English', flag: '🇺🇸' },
+  { code: 'ko', label: '한국어', flag: '🇰🇷' },
+  { code: 'uz', label: "O'zbekcha", flag: '🇺🇿' },
 ] as const
 
 export type LanguageCode = 'en' | 'ko' | 'uz'

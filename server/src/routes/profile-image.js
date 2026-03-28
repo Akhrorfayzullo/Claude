@@ -35,6 +35,7 @@ router.get('/file', async (_request, response, next) => {
 
     response.setHeader('Content-Type', profileImage.mimeType)
     response.setHeader('Cache-Control', 'no-store')
+    response.setHeader('Cross-Origin-Resource-Policy', 'cross-origin')
     response.sendFile(path.resolve(profileImage.filePath))
   } catch (error) {
     next(error)

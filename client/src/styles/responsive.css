@@ -81,6 +81,12 @@
     width: 100%;
   }
 
+  /* On mobile, dropdown opens upward to avoid clipping */
+  .lang-menu {
+    bottom: calc(100% + 8px);
+    top: auto;
+  }
+
   .brand {
     padding: 8px 0;
     gap: 12px;
@@ -96,43 +102,6 @@
     width: 40px;
     height: 40px;
     border-radius: 14px;
-  }
-
-  .lang-toggle {
-    min-height: 40px;
-    padding: 0 12px 0 8px;
-    font-size: 0.76rem;
-  }
-
-  .lang-toggle-flag {
-    width: 24px;
-    height: 24px;
-    font-size: 0.92rem;
-  }
-
-  .theme-toggle {
-    min-height: 40px;
-    padding: 4px 7px 4px 8px;
-  }
-
-  .theme-toggle-track {
-    width: 46px;
-    height: 26px;
-    padding: 2px;
-  }
-
-  .theme-toggle-thumb {
-    width: 20px;
-    height: 20px;
-  }
-
-  .theme-toggle-active .theme-toggle-thumb {
-    transform: translateX(22px);
-  }
-
-  .theme-toggle-label {
-    padding-right: 6px;
-    font-size: 0.84rem;
   }
 
   .admin-page {
@@ -263,12 +232,13 @@
     gap: 12px;
   }
 
+  /* Hide sun/moon labels on very small screens, keep the track */
   .theme-toggle-label {
     display: none;
   }
 
   .theme-toggle {
-    padding-right: 6px;
+    padding: 4px 8px;
   }
 }
 

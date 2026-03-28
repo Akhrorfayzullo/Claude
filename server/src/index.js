@@ -5,6 +5,7 @@ import helmet from 'helmet'
 import cookieParser from 'cookie-parser'
 import dns from 'node:dns'
 import fs from 'node:fs/promises'
+import { createRequire } from 'node:module'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import bcrypt from 'bcryptjs'
@@ -30,6 +31,7 @@ if (missingEnv.length > 0) {
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
+const require = createRequire(import.meta.url)
 const serverRoot = path.resolve(__dirname, '..')
 const clientDistPath = path.resolve(serverRoot, '..', 'client', 'dist')
 const uploadsDirectory = path.resolve(serverRoot, 'uploads', 'resumes')
@@ -39,21 +41,57 @@ const app = express()
 const port = Number(process.env.PORT || 4000)
 const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173'
 const isProduction = process.env.NODE_ENV === 'production'
+const localhostOriginPattern = /^http:\/\/(localhost|127\.0\.0\.1):\d+$/
+const hasPrettyLogger = (() => {
+  try {
+    require.resolve('pino-pretty')
+    return true
+  } catch {
+    return false
+  }
+})()
 
 // ── Logger ─────────────────────────────────────────────────────────────────
 export const logger = pino({
   level: isProduction ? 'info' : 'debug',
-  transport: isProduction ? undefined : { target: 'pino-pretty' },
+  transport: !isProduction && hasPrettyLogger ? { target: 'pino-pretty' } : undefined,
 })
 
 // Some networks resolve Atlas SRV records in the OS, but refuse Node's default DNS path.
 dns.setServers(['8.8.8.8', '1.1.1.1'])
 
 // ── Middleware ─────────────────────────────────────────────────────────────
-app.use(helmet())
+app.use(
+  helmet({
+    contentSecurityPolicy: {
+      directives: {
+        ...helmet.contentSecurityPolicy.getDefaultDirectives(),
+        // Allow images served by this API server (cross-origin in dev)
+        'img-src': ["'self'", 'data:', `http://localhost:${process.env.PORT || 4000}`],
+        'font-src': ["'self'", 'data:'],
+      },
+    },
+    crossOriginResourcePolicy: { policy: 'cross-origin' },
+  }),
+)
 app.use(
   cors({
-    origin: clientUrl,
+    origin(origin, callback) {
+      if (!origin) {
+        callback(null, true)
+        return
+      }
+
+      const isConfiguredOrigin = origin === clientUrl
+      const isLocalDevOrigin = !isProduction && localhostOriginPattern.test(origin)
+
+      if (isConfiguredOrigin || isLocalDevOrigin) {
+        callback(null, true)
+        return
+      }
+
+      callback(new Error(`Origin ${origin} is not allowed by CORS.`))
+    },
     credentials: true,
   }),
 )
@@ -89,6 +127,14 @@ async function seedAdminUser() {
     const passwordHash = await bcrypt.hash(password, 12)
     await AdminUser.create({ username, passwordHash })
     logger.info({ username }, 'Admin user created')
+    return
+  }
+
+  const passwordMatches = await bcrypt.compare(password, existing.passwordHash)
+  if (!passwordMatches) {
+    existing.passwordHash = await bcrypt.hash(password, 12)
+    await existing.save()
+    logger.info({ username }, 'Admin user password synced from environment')
   }
 }
 
