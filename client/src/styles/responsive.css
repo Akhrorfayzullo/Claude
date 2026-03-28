@@ -1,0 +1,283 @@
+@media (max-width: 1024px) {
+  .hero,
+  .about-layout,
+  .contact-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .skills-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .projects-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .hero {
+    min-height: auto;
+    padding-top: 52px;
+  }
+
+  .hero h1 {
+    max-width: 100%;
+  }
+
+  .hero-visual {
+    min-height: 520px;
+  }
+
+  .hero-side-card-right {
+    right: 0;
+  }
+}
+
+@media (max-width: 720px) {
+  :root {
+    --shell-width: min(1120px, calc(100vw - 24px));
+  }
+
+  /* Nav: show hamburger, hide actions by default */
+  .nav {
+    position: relative;
+    min-height: 60px;
+    flex-wrap: wrap;
+    padding: 10px 0;
+    align-items: center;
+  }
+
+  .nav-hamburger {
+    display: flex;
+  }
+
+  .nav-actions {
+    display: none;
+    width: 100%;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 0 14px;
+    border-top: 1px solid var(--border);
+  }
+
+  .nav-actions-open {
+    display: flex;
+  }
+
+  .nav-links {
+    flex-direction: column;
+    gap: 14px;
+    width: 100%;
+  }
+
+  .nav-controls {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .brand {
+    padding: 8px 0;
+    gap: 12px;
+    font-size: 0.95rem;
+  }
+
+  .brand-mark {
+    width: 52px;
+    height: 52px;
+  }
+
+  .site-header-scrolled .brand-mark {
+    width: 40px;
+    height: 40px;
+    border-radius: 14px;
+  }
+
+  .lang-toggle {
+    min-height: 40px;
+    padding: 0 12px 0 8px;
+    font-size: 0.76rem;
+  }
+
+  .lang-toggle-flag {
+    width: 24px;
+    height: 24px;
+    font-size: 0.92rem;
+  }
+
+  .theme-toggle {
+    min-height: 40px;
+    padding: 4px 7px 4px 8px;
+  }
+
+  .theme-toggle-track {
+    width: 46px;
+    height: 26px;
+    padding: 2px;
+  }
+
+  .theme-toggle-thumb {
+    width: 20px;
+    height: 20px;
+  }
+
+  .theme-toggle-active .theme-toggle-thumb {
+    transform: translateX(22px);
+  }
+
+  .theme-toggle-label {
+    padding-right: 6px;
+    font-size: 0.84rem;
+  }
+
+  .admin-page {
+    padding-top: 24px;
+  }
+
+  .admin-hero h1 {
+    max-width: 100%;
+  }
+
+  .admin-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero,
+  .section {
+    padding: 56px 0;
+  }
+
+  .hero-visual {
+    min-height: 460px;
+  }
+
+  .hero-visual-shell {
+    width: 100%;
+  }
+
+  .hero-center-core {
+    width: 170px;
+    height: 170px;
+  }
+
+  .hero-center-core span {
+    font-size: 3.2rem;
+  }
+
+  .hero-centerpiece p {
+    bottom: 6%;
+  }
+
+  .card,
+  .info-card,
+  .contact-card {
+    border-radius: 22px;
+  }
+
+  .skills-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .projects-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-inline-actions {
+    flex-direction: column;
+  }
+
+  .admin-inline-actions > * {
+    width: 100%;
+  }
+
+  .field-small {
+    max-width: none;
+  }
+
+  .hero-float,
+  .hero-side-card {
+    width: 100%;
+    left: 0;
+    right: 0;
+  }
+
+  .hero-float-top {
+    top: 0;
+  }
+
+  .hero-float-bottom {
+    bottom: 0;
+  }
+
+  .hero-side-card-left,
+  .hero-side-card-right {
+    display: none;
+  }
+
+  .site-footer {
+    padding-bottom: 28px;
+  }
+
+  .footer-reveal {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .background-cursor-glow {
+    width: 240px;
+    height: 240px;
+  }
+
+  /* Login page mobile */
+  .login-page {
+    align-items: flex-start;
+    padding-top: 32px;
+  }
+
+  .login-card {
+    max-width: 100%;
+  }
+
+  /* Admin hero top mobile */
+  .admin-hero-top {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .admin-lang-selector {
+    flex-direction: column;
+  }
+
+  .admin-lang-selector .button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .nav-links {
+    gap: 12px;
+  }
+
+  .theme-toggle-label {
+    display: none;
+  }
+
+  .theme-toggle {
+    padding-right: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

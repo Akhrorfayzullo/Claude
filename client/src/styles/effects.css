@@ -1,0 +1,212 @@
+.background-effect {
+  position: fixed;
+  inset: 0;
+  overflow: clip;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.background-cursor-glow {
+  position: absolute;
+  left: var(--cursor-x);
+  top: var(--cursor-y);
+  width: 340px;
+  height: 340px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  filter: blur(34px);
+  opacity: 0.52;
+}
+
+.background-effect-dark .background-cursor-glow {
+  background: radial-gradient(circle, rgba(107, 91, 255, 0.25), transparent 68%);
+}
+
+.background-effect-light .background-cursor-glow {
+  background: radial-gradient(circle, rgba(255, 186, 88, 0.22), transparent 68%);
+}
+
+.background-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+  background-size: 52px 52px;
+  mask-image: radial-gradient(circle at center, black 24%, transparent 78%);
+}
+
+.background-ambient,
+.background-ring {
+  position: absolute;
+  border-radius: 50%;
+  opacity: 0.72;
+}
+
+.background-ambient-one {
+  top: 8%;
+  left: 6%;
+  width: 360px;
+  height: 360px;
+  filter: blur(20px);
+  animation: drift 18s ease-in-out infinite alternate;
+}
+
+.background-ambient-two {
+  top: 24%;
+  right: 8%;
+  width: 300px;
+  height: 300px;
+  filter: blur(20px);
+  animation: drift 14s ease-in-out infinite alternate-reverse;
+}
+
+.background-ambient-three {
+  bottom: 8%;
+  left: 36%;
+  width: 240px;
+  height: 240px;
+  filter: blur(18px);
+  animation: drift 16s ease-in-out infinite alternate;
+}
+
+.background-effect-dark .background-ambient-one {
+  background: radial-gradient(circle, rgba(113, 91, 255, 0.28), transparent 68%);
+}
+
+.background-effect-dark .background-ambient-two {
+  background: radial-gradient(circle, rgba(95, 131, 255, 0.2), transparent 66%);
+}
+
+.background-effect-dark .background-ambient-three {
+  background: radial-gradient(circle, rgba(140, 114, 255, 0.18), transparent 64%);
+}
+
+.background-effect-light .background-ambient-one {
+  background: radial-gradient(circle, rgba(255, 190, 88, 0.28), transparent 68%);
+}
+
+.background-effect-light .background-ambient-two {
+  background: radial-gradient(circle, rgba(255, 132, 74, 0.18), transparent 64%);
+}
+
+.background-effect-light .background-ambient-three {
+  background: radial-gradient(circle, rgba(255, 214, 124, 0.16), transparent 62%);
+}
+
+.background-ring {
+  top: 16%;
+  left: 50%;
+  width: 520px;
+  height: 520px;
+  margin-left: -260px;
+  border: 1px solid color-mix(in srgb, var(--accent) 16%, transparent);
+  animation: spin-slow 34s linear infinite;
+}
+
+.background-particles {
+  position: absolute;
+  inset: 0;
+}
+
+.background-particle {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  animation: twinkle var(--duration) ease-in-out infinite;
+  animation-delay: var(--delay);
+}
+
+.background-effect-dark .background-particle {
+  background: rgba(177, 189, 255, 0.84);
+  box-shadow: 0 0 18px rgba(112, 131, 255, 0.34);
+}
+
+.background-effect-light .background-particle {
+  background: rgba(255, 184, 84, 0.9);
+  box-shadow: 0 0 18px rgba(255, 184, 84, 0.22);
+}
+
+@keyframes drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(32px, -24px, 0) scale(1.08);
+  }
+}
+
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes spin-reverse {
+  from {
+    transform: rotate(360deg);
+  }
+  to {
+    transform: rotate(0deg);
+  }
+}
+
+@keyframes float-card {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse-glow {
+  0%,
+  100% {
+    opacity: 0.76;
+    transform: scale(0.98);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+@keyframes drift-card-left {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(-5deg);
+  }
+  50% {
+    transform: translate3d(10px, -14px, 0) rotate(1deg);
+  }
+}
+
+@keyframes drift-card-right {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(6deg);
+  }
+  50% {
+    transform: translate3d(-8px, 12px, 0) rotate(-2deg);
+  }
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.25;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.25);
+  }
+}

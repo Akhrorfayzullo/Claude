@@ -1,0 +1,113 @@
+{
+  "nav": {
+    "about": "About",
+    "skills": "Skills",
+    "projects": "Projects",
+    "contact": "Contact",
+    "admin": "Admin",
+    "backToSite": "Back to site"
+  },
+  "theme": {
+    "light": "Light mode",
+    "dark": "Dark mode"
+  },
+  "hero": {
+    "eyebrow": "Full Stack Developer / React / Node.js / TypeScript",
+    "title": "I build full-stack web apps.",
+    "description": "AI writes code fast. I make sure the product actually makes sense. I am not better than AI, but I am better with it.",
+    "seeProjects": "See projects",
+    "resume": "Resume",
+    "solarMode": "SOLAR MODE",
+    "nightMode": "NIGHT MODE",
+    "animatedUI": "Animated UI + solid backend architecture",
+    "buildStack": "BUILD STACK",
+    "yearsDesc": "Years building production-ready web products.",
+    "buildsDesc": "Selected builds across product, portfolio, and dashboard work."
+  },
+  "about": {
+    "eyebrow": "About Me",
+    "title": "I care about the quality of both the code and the feeling of the interface.",
+    "lead": "I am a full stack developer who enjoys building complete web products, from frontend presentation and interaction to backend structure, APIs, and data flow.",
+    "body": "My approach balances clean engineering with strong visual presentation. I want the interface to feel intentional and the system behind it to stay maintainable as it grows.",
+    "highlight1": "Strong attention to layout systems, spacing, typography, and component reuse.",
+    "highlight2": "Comfortable translating rough ideas into structured interfaces with clear hierarchy.",
+    "highlight3": "Focused on maintainable React code, scalable styling, and responsive behavior."
+  },
+  "skills": {
+    "eyebrow": "What I Use",
+    "title": "Skills",
+    "toolkit": "toolkit"
+  },
+  "projects": {
+    "eyebrow": "Selected Work",
+    "title": "A few projects that reflect how I approach product and interface design.",
+    "empty": "Projects will appear here once they are added from the admin page."
+  },
+  "contact": {
+    "eyebrow": "Contact",
+    "title": "If you want a site that feels sharper than the template stage, let's build it.",
+    "lead": "I am interested in full stack products, frontend-heavy builds, and UI-focused collaborations that need both good engineering and a strong visual result.",
+    "startConversation": "Start a conversation",
+    "email": "Email",
+    "github": "GitHub",
+    "location": "Based in Seoul",
+    "availability": "Available for remote collaboration"
+  },
+  "footer": {
+    "backToTop": "Back to top",
+    "copyright": "© {{year}} Akhrorbek. Built with React, TypeScript, and Vite."
+  },
+  "admin": {
+    "eyebrow": "Admin",
+    "title": "Update your resume and project list from one place.",
+    "lead": "This panel writes to MongoDB for projects and stores the latest PDF resume on the server so the public portfolio always points to the newest file.",
+    "logout": "Logout",
+    "brandImage": "Brand image",
+    "navbarProfileImage": "Navbar profile image",
+    "noProfileImage": "No profile image uploaded yet",
+    "lastUpdated": "Last updated:",
+    "uploadImageLabel": "Upload JPG, PNG, WEBP, or SVG",
+    "uploadImage": "Upload image",
+    "uploading": "Uploading...",
+    "resume": "Resume",
+    "currentResume": "Current resume file",
+    "loadingResume": "Loading current resume...",
+    "noResume": "No resume uploaded yet",
+    "viewResume": "View resume",
+    "downloadResume": "Download resume",
+    "uploadPdf": "Upload new PDF",
+    "uploadResume": "Upload resume",
+    "projects": "Projects",
+    "addProject": "Add project",
+    "editProject": "Edit project",
+    "projectTitle": "Title",
+    "projectDescription": "Description",
+    "projectLink": "Link",
+    "projectTags": "Tags",
+    "projectSortOrder": "Sort order",
+    "createProject": "Create project",
+    "updateProject": "Update project",
+    "saving": "Saving...",
+    "cancelEdit": "Cancel edit",
+    "storedProjects": "Stored Projects",
+    "storedProjectsTitle": "Projects currently coming from MongoDB",
+    "loadingProjects": "Loading projects...",
+    "noProjects": "No projects are stored yet. Add your first project with the form above.",
+    "sortLabel": "Sort {{order}}",
+    "edit": "Edit",
+    "delete": "Delete",
+    "language": "Default Language",
+    "languageLabel": "Site default language",
+    "saveLanguage": "Save language",
+    "languageSaved": "Default language updated.",
+    "languageSaving": "Saving..."
+  },
+  "login": {
+    "title": "Admin Login",
+    "username": "Username",
+    "password": "Password",
+    "submit": "Sign in",
+    "signingIn": "Signing in...",
+    "backToSite": "Back to site"
+  }
+}
