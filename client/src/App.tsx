@@ -12,7 +12,15 @@ import Projects from './components/Projects'
 import Skills from './components/Skills'
 import { projects as fallbackProjects } from './data/projects.ts'
 import i18n from './i18n/index.ts'
-import { fetchDefaultLanguage, fetchProfileImage, fetchProjects, fetchResume, toAbsoluteApiUrl } from './lib/api.ts'
+import {
+  checkAuth,
+  fetchDefaultLanguage,
+  fetchProfileImage,
+  fetchProjects,
+  fetchResume,
+  logout,
+  toAbsoluteApiUrl,
+} from './lib/api.ts'
 import type { ProfileImageSummary } from './types/profile-image.types.ts'
 import type { Project } from './types/project.types.ts'
 import type { ResumeSummary } from './types/resume.types.ts'
@@ -20,15 +28,10 @@ import type { ResumeSummary } from './types/resume.types.ts'
 type Theme = 'dark' | 'light'
 
 function getInitialTheme(): Theme {
-  if (typeof window === 'undefined') {
-    return 'dark'
-  }
+  if (typeof window === 'undefined') return 'dark'
 
   const storedTheme = window.localStorage.getItem('portfolio-theme')
-
-  if (storedTheme === 'dark' || storedTheme === 'light') {
-    return storedTheme
-  }
+  if (storedTheme === 'dark' || storedTheme === 'light') return storedTheme
 
   return window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark'
 }
@@ -39,7 +42,8 @@ function App() {
   const [profileImage, setProfileImage] = useState<ProfileImageSummary | null>(null)
   const [resume, setResume] = useState<ResumeSummary | null>(null)
   const [isScrolled, setIsScrolled] = useState(false)
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem('admin-token'))
+  // null = checking, false = not logged in, string = username
+  const [authUser, setAuthUser] = useState<string | null | false>(null)
   const isAdminView = window.location.pathname.startsWith('/admin')
 
   useEffect(() => {
@@ -50,7 +54,6 @@ function App() {
 
   useEffect(() => {
     const root = document.documentElement
-
     const updateCursor = (x: number, y: number) => {
       root.style.setProperty('--cursor-x', `${x}px`)
       root.style.setProperty('--cursor-y', `${y}px`)
@@ -58,80 +61,67 @@ function App() {
 
     updateCursor(window.innerWidth / 2, window.innerHeight / 2)
 
-    const handlePointerMove = (event: PointerEvent) => {
-      updateCursor(event.clientX, event.clientY)
-    }
-
+    const handlePointerMove = (event: PointerEvent) => updateCursor(event.clientX, event.clientY)
     window.addEventListener('pointermove', handlePointerMove, { passive: true })
-
     return () => window.removeEventListener('pointermove', handlePointerMove)
   }, [])
 
   useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 48)
-    }
-
+    const handleScroll = () => setIsScrolled(window.scrollY > 48)
     handleScroll()
     window.addEventListener('scroll', handleScroll, { passive: true })
-
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
   useEffect(() => {
     let isMounted = true
 
-    const loadPortfolioData = async () => {
+    const loadData = async () => {
+      // Check auth state via cookie (server validates)
+      if (isAdminView) {
+        const username = await checkAuth()
+        if (isMounted) setAuthUser(username ?? false)
+      }
+
       try {
         const [projectList, defaultLang] = await Promise.all([
           fetchProjects(),
           fetchDefaultLanguage(),
         ])
-
         if (isMounted) {
           setProjects(projectList)
           void i18n.changeLanguage(defaultLang)
         }
       } catch {
-        // Keep local fallback data when the API is not available yet.
+        // Keep fallback data when API is unavailable.
       }
 
       try {
         const resumeSummary = await fetchResume()
-
-        if (isMounted) {
-          setResume(resumeSummary)
-        }
+        if (isMounted) setResume(resumeSummary)
       } catch {
-        // The hero falls back to the local placeholder resume when the API is unavailable.
+        // Hero falls back to local resume.
       }
 
       try {
         const profileImageSummary = await fetchProfileImage()
-
-        if (isMounted) {
-          setProfileImage(profileImageSummary)
-        }
+        if (isMounted) setProfileImage(profileImageSummary)
       } catch {
-        // The navbar falls back to the letter badge when the API is unavailable.
+        // Navbar falls back to letter badge.
       }
     }
 
-    void loadPortfolioData()
-
-    return () => {
-      isMounted = false
-    }
+    void loadData()
+    return () => { isMounted = false }
   }, [])
 
-  const handleLogin = (newToken: string) => {
-    localStorage.setItem('admin-token', newToken)
-    setToken(newToken)
+  const handleLogin = () => {
+    setAuthUser('admin')
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem('admin-token')
-    setToken(null)
+  const handleLogout = async () => {
+    await logout()
+    setAuthUser(false)
     window.location.href = '/'
   }
 
@@ -139,9 +129,9 @@ function App() {
   const profileImageUrl = profileImage ? toAbsoluteApiUrl(profileImage.viewUrl) : null
 
   const renderAdminContent = () => {
-    if (!token) {
-      return <LoginPage onLogin={handleLogin} />
-    }
+    // Still checking auth state
+    if (authUser === null) return null
+    if (authUser === false) return <LoginPage onLogin={handleLogin} />
     return <AdminPage onProfileImageChange={setProfileImage} onLogout={handleLogout} />
   }
 

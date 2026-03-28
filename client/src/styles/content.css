@@ -318,6 +318,18 @@
   margin-top: 24px;
 }
 
+.admin-confirm-delete {
+  display: grid;
+  gap: 12px;
+  width: 100%;
+}
+
+.admin-confirm-text {
+  margin: 0;
+  font-size: 0.92rem;
+  color: #ffb7b7;
+}
+
 /* Admin hero top row (title + logout) */
 .admin-hero-top {
   display: flex;

@@ -16,11 +16,6 @@ function getApiUrl(path: string) {
   return `${apiBaseUrl}${path}`
 }
 
-function getAuthHeaders(): Record<string, string> {
-  const token = localStorage.getItem('admin-token')
-  return token ? { Authorization: `Bearer ${token}` } : {}
-}
-
 async function parseError(response: Response) {
   try {
     const payload = (await response.json()) as { message?: string }
@@ -31,7 +26,10 @@ async function parseError(response: Response) {
 }
 
 async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(getApiUrl(path), init)
+  const response = await fetch(getApiUrl(path), {
+    credentials: 'include',
+    ...init,
+  })
 
   if (!response.ok) {
     throw new Error(await parseError(response))
@@ -40,13 +38,29 @@ async function requestJson<T>(path: string, init?: RequestInit): Promise<T> {
   return (await response.json()) as T
 }
 
+export async function checkAuth(): Promise<string | null> {
+  try {
+    const data = await requestJson<{ username: string }>('/api/auth/me')
+    return data.username
+  } catch {
+    return null
+  }
+}
+
 export async function login(username: string, password: string): Promise<string> {
-  const data = await requestJson<{ token: string }>('/api/auth/login', {
+  const data = await requestJson<{ username: string }>('/api/auth/login', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ username, password }),
   })
-  return data.token
+  return data.username
+}
+
+export async function logout(): Promise<void> {
+  await fetch(getApiUrl('/api/auth/logout'), {
+    method: 'POST',
+    credentials: 'include',
+  })
 }
 
 export async function fetchDefaultLanguage(): Promise<string> {
@@ -57,10 +71,7 @@ export async function fetchDefaultLanguage(): Promise<string> {
 export async function updateDefaultLanguage(language: string): Promise<string> {
   const data = await requestJson<{ language: string }>('/api/settings/language', {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      ...getAuthHeaders(),
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ language }),
   })
   return data.language
@@ -71,7 +82,7 @@ export async function fetchProjects() {
 }
 
 export async function fetchResume() {
-  const response = await fetch(getApiUrl('/api/resume'))
+  const response = await fetch(getApiUrl('/api/resume'), { credentials: 'include' })
 
   if (response.status === 404) {
     return null
@@ -85,7 +96,7 @@ export async function fetchResume() {
 }
 
 export async function fetchProfileImage() {
-  const response = await fetch(getApiUrl('/api/profile-image'))
+  const response = await fetch(getApiUrl('/api/profile-image'), { credentials: 'include' })
 
   if (response.status === 404) {
     return null
@@ -101,10 +112,7 @@ export async function fetchProfileImage() {
 export async function createProject(payload: ProjectPayload) {
   return requestJson<Project>('/api/admin/projects', {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...getAuthHeaders(),
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   })
 }
@@ -112,10 +120,7 @@ export async function createProject(payload: ProjectPayload) {
 export async function updateProject(projectId: string, payload: ProjectPayload) {
   return requestJson<Project>(`/api/admin/projects/${projectId}`, {
     method: 'PUT',
-    headers: {
-      'Content-Type': 'application/json',
-      ...getAuthHeaders(),
-    },
+    headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload),
   })
 }
@@ -123,7 +128,7 @@ export async function updateProject(projectId: string, payload: ProjectPayload) 
 export async function deleteProject(projectId: string) {
   const response = await fetch(getApiUrl(`/api/admin/projects/${projectId}`), {
     method: 'DELETE',
-    headers: getAuthHeaders(),
+    credentials: 'include',
   })
 
   if (!response.ok) {
@@ -137,7 +142,6 @@ export async function uploadResume(file: File) {
 
   return requestJson<ResumeSummary>('/api/admin/resume', {
     method: 'POST',
-    headers: getAuthHeaders(),
     body: formData,
   })
 }
@@ -148,7 +152,6 @@ export async function uploadProfileImage(file: File) {
 
   return requestJson<ProfileImageSummary>('/api/admin/profile-image', {
     method: 'POST',
-    headers: getAuthHeaders(),
     body: formData,
   })
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useReducer, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   createProject,
@@ -19,37 +19,194 @@ import type { ResumeSummary } from '../types/resume.types.ts'
 import { type LanguageCode, SUPPORTED_LANGUAGES } from '../i18n/index.ts'
 import DocumentIcon from './DocumentIcon.tsx'
 
-const emptyProjectForm = {
-  title: '',
-  description: '',
-  href: '',
-  tags: '',
-  sortOrder: '0',
+// ── Types ──────────────────────────────────────────────────────────────────
+
+const emptyProjectForm = { title: '', description: '', href: '', tags: '', sortOrder: '0' }
+
+type ProjectForm = typeof emptyProjectForm
+
+type AdminState = {
+  projects: Project[]
+  profileImage: ProfileImageSummary | null
+  resume: ResumeSummary | null
+  selectedLanguage: LanguageCode
+  projectForm: ProjectForm
+  editingProjectId: string | null
+  confirmDeleteId: string | null
+  profileImageFile: File | null
+  resumeFile: File | null
+  isLoading: boolean
+  isUploadingProfileImage: boolean
+  isSavingProject: boolean
+  isUploadingResume: boolean
+  isSavingLanguage: boolean
+  statusMessage: string | null
+  errorMessage: string | null
+}
+
+type AdminAction =
+  | { type: 'LOAD_SUCCESS'; projects: Project[]; resume: ResumeSummary | null; profileImage: ProfileImageSummary | null; language: LanguageCode }
+  | { type: 'LOAD_ERROR'; error: string }
+  | { type: 'SET_PROJECT_FORM'; field: keyof ProjectForm; value: string }
+  | { type: 'EDIT_PROJECT'; project: Project }
+  | { type: 'CANCEL_EDIT' }
+  | { type: 'SAVE_PROJECT_START' }
+  | { type: 'SAVE_PROJECT_SUCCESS'; project: Project; isEdit: boolean }
+  | { type: 'SAVE_PROJECT_ERROR'; error: string }
+  | { type: 'CONFIRM_DELETE'; projectId: string }
+  | { type: 'CANCEL_DELETE' }
+  | { type: 'DELETE_PROJECT_SUCCESS'; projectId: string }
+  | { type: 'DELETE_PROJECT_ERROR'; error: string }
+  | { type: 'SET_PROFILE_IMAGE_FILE'; file: File | null }
+  | { type: 'UPLOAD_PROFILE_IMAGE_START' }
+  | { type: 'UPLOAD_PROFILE_IMAGE_SUCCESS'; profileImage: ProfileImageSummary }
+  | { type: 'UPLOAD_PROFILE_IMAGE_ERROR'; error: string }
+  | { type: 'SET_RESUME_FILE'; file: File | null }
+  | { type: 'UPLOAD_RESUME_START' }
+  | { type: 'UPLOAD_RESUME_SUCCESS'; resume: ResumeSummary }
+  | { type: 'UPLOAD_RESUME_ERROR'; error: string }
+  | { type: 'SET_LANGUAGE'; language: LanguageCode }
+  | { type: 'SAVE_LANGUAGE_START' }
+  | { type: 'SAVE_LANGUAGE_SUCCESS'; message: string }
+  | { type: 'SAVE_LANGUAGE_ERROR'; error: string }
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+
+function sortProjects(projects: Project[]) {
+  return [...projects].sort((a, b) => {
+    const diff = (a.sortOrder ?? 0) - (b.sortOrder ?? 0)
+    return diff !== 0 ? diff : a.title.localeCompare(b.title)
+  })
 }
 
 function formatDate(value?: string) {
-  if (!value) {
-    return 'Not uploaded yet'
-  }
-
-  return new Intl.DateTimeFormat(undefined, {
-    dateStyle: 'medium',
-    timeStyle: 'short',
-  }).format(new Date(value))
+  if (!value) return 'Not uploaded yet'
+  return new Intl.DateTimeFormat(undefined, { dateStyle: 'medium', timeStyle: 'short' }).format(
+    new Date(value),
+  )
 }
 
-function sortProjects(projects: Project[]) {
-  return [...projects].sort((left, right) => {
-    const leftOrder = left.sortOrder ?? 0
-    const rightOrder = right.sortOrder ?? 0
+// ── Reducer ────────────────────────────────────────────────────────────────
 
-    if (leftOrder !== rightOrder) {
-      return leftOrder - rightOrder
+const initialState: AdminState = {
+  projects: [],
+  profileImage: null,
+  resume: null,
+  selectedLanguage: 'en',
+  projectForm: emptyProjectForm,
+  editingProjectId: null,
+  confirmDeleteId: null,
+  profileImageFile: null,
+  resumeFile: null,
+  isLoading: true,
+  isUploadingProfileImage: false,
+  isSavingProject: false,
+  isUploadingResume: false,
+  isSavingLanguage: false,
+  statusMessage: null,
+  errorMessage: null,
+}
+
+function adminReducer(state: AdminState, action: AdminAction): AdminState {
+  switch (action.type) {
+    case 'LOAD_SUCCESS':
+      return {
+        ...state,
+        isLoading: false,
+        projects: sortProjects(action.projects),
+        resume: action.resume,
+        profileImage: action.profileImage,
+        selectedLanguage: action.language,
+        errorMessage: null,
+      }
+    case 'LOAD_ERROR':
+      return { ...state, isLoading: false, errorMessage: action.error }
+
+    case 'SET_PROJECT_FORM':
+      return { ...state, projectForm: { ...state.projectForm, [action.field]: action.value } }
+    case 'EDIT_PROJECT':
+      return {
+        ...state,
+        editingProjectId: action.project.id ?? null,
+        projectForm: {
+          title: action.project.title,
+          description: action.project.description,
+          href: action.project.href,
+          tags: action.project.tags.join(', '),
+          sortOrder: `${action.project.sortOrder ?? 0}`,
+        },
+        statusMessage: null,
+        errorMessage: null,
+      }
+    case 'CANCEL_EDIT':
+      return { ...state, editingProjectId: null, projectForm: emptyProjectForm }
+
+    case 'SAVE_PROJECT_START':
+      return { ...state, isSavingProject: true, errorMessage: null, statusMessage: null }
+    case 'SAVE_PROJECT_SUCCESS': {
+      const next = action.isEdit
+        ? state.projects.map((p) => (p.id === action.project.id ? action.project : p))
+        : [...state.projects, action.project]
+      return {
+        ...state,
+        isSavingProject: false,
+        projects: sortProjects(next),
+        editingProjectId: null,
+        projectForm: emptyProjectForm,
+        statusMessage: action.isEdit ? 'Project updated.' : 'Project created.',
+      }
     }
+    case 'SAVE_PROJECT_ERROR':
+      return { ...state, isSavingProject: false, errorMessage: action.error }
 
-    return left.title.localeCompare(right.title)
-  })
+    case 'CONFIRM_DELETE':
+      return { ...state, confirmDeleteId: action.projectId, errorMessage: null, statusMessage: null }
+    case 'CANCEL_DELETE':
+      return { ...state, confirmDeleteId: null }
+    case 'DELETE_PROJECT_SUCCESS': {
+      const projects = state.projects.filter((p) => p.id !== action.projectId)
+      const editingProjectId =
+        state.editingProjectId === action.projectId ? null : state.editingProjectId
+      const projectForm =
+        state.editingProjectId === action.projectId ? emptyProjectForm : state.projectForm
+      return { ...state, projects, editingProjectId, projectForm, confirmDeleteId: null, statusMessage: 'Project deleted.' }
+    }
+    case 'DELETE_PROJECT_ERROR':
+      return { ...state, confirmDeleteId: null, errorMessage: action.error }
+
+    case 'SET_PROFILE_IMAGE_FILE':
+      return { ...state, profileImageFile: action.file }
+    case 'UPLOAD_PROFILE_IMAGE_START':
+      return { ...state, isUploadingProfileImage: true, errorMessage: null, statusMessage: null }
+    case 'UPLOAD_PROFILE_IMAGE_SUCCESS':
+      return { ...state, isUploadingProfileImage: false, profileImage: action.profileImage, profileImageFile: null, statusMessage: 'Profile image updated.' }
+    case 'UPLOAD_PROFILE_IMAGE_ERROR':
+      return { ...state, isUploadingProfileImage: false, errorMessage: action.error }
+
+    case 'SET_RESUME_FILE':
+      return { ...state, resumeFile: action.file }
+    case 'UPLOAD_RESUME_START':
+      return { ...state, isUploadingResume: true, errorMessage: null, statusMessage: null }
+    case 'UPLOAD_RESUME_SUCCESS':
+      return { ...state, isUploadingResume: false, resume: action.resume, resumeFile: null, statusMessage: 'Resume updated.' }
+    case 'UPLOAD_RESUME_ERROR':
+      return { ...state, isUploadingResume: false, errorMessage: action.error }
+
+    case 'SET_LANGUAGE':
+      return { ...state, selectedLanguage: action.language }
+    case 'SAVE_LANGUAGE_START':
+      return { ...state, isSavingLanguage: true, errorMessage: null, statusMessage: null }
+    case 'SAVE_LANGUAGE_SUCCESS':
+      return { ...state, isSavingLanguage: false, statusMessage: action.message }
+    case 'SAVE_LANGUAGE_ERROR':
+      return { ...state, isSavingLanguage: false, errorMessage: action.error }
+
+    default:
+      return state
+  }
 }
+
+// ── Component ──────────────────────────────────────────────────────────────
 
 type AdminPageProps = {
   onProfileImageChange?: (profileImage: ProfileImageSummary | null) => void
@@ -58,29 +215,20 @@ type AdminPageProps = {
 
 function AdminPage({ onProfileImageChange, onLogout }: AdminPageProps) {
   const { t, i18n } = useTranslation()
-  const [projects, setProjects] = useState<Project[]>([])
-  const [profileImage, setProfileImage] = useState<ProfileImageSummary | null>(null)
-  const [resume, setResume] = useState<ResumeSummary | null>(null)
-  const [projectForm, setProjectForm] = useState(emptyProjectForm)
-  const [editingProjectId, setEditingProjectId] = useState<string | null>(null)
-  const [profileImageFile, setProfileImageFile] = useState<File | null>(null)
-  const [resumeFile, setResumeFile] = useState<File | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [isUploadingProfileImage, setIsUploadingProfileImage] = useState(false)
-  const [isSavingProject, setIsSavingProject] = useState(false)
-  const [isUploadingResume, setIsUploadingResume] = useState(false)
-  const [isSavingLanguage, setIsSavingLanguage] = useState(false)
-  const [selectedLanguage, setSelectedLanguage] = useState<LanguageCode>('en')
-  const [statusMessage, setStatusMessage] = useState<string | null>(null)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [state, dispatch] = useReducer(adminReducer, initialState)
+
+  const {
+    projects, profileImage, resume, selectedLanguage,
+    projectForm, editingProjectId, confirmDeleteId,
+    profileImageFile, resumeFile,
+    isLoading, isUploadingProfileImage, isSavingProject, isUploadingResume, isSavingLanguage,
+    statusMessage, errorMessage,
+  } = state
 
   useEffect(() => {
     let isMounted = true
 
-    const loadAdminData = async () => {
-      setIsLoading(true)
-      setErrorMessage(null)
-
+    const load = async () => {
       try {
         const [projectList, resumeSummary, profileImageSummary, defaultLang] = await Promise.all([
           fetchProjects(),
@@ -89,194 +237,107 @@ function AdminPage({ onProfileImageChange, onLogout }: AdminPageProps) {
           fetchDefaultLanguage(),
         ])
 
-        if (!isMounted) {
-          return
-        }
+        if (!isMounted) return
 
-        setProjects(sortProjects(projectList))
-        setResume(resumeSummary)
-        setProfileImage(profileImageSummary)
+        dispatch({
+          type: 'LOAD_SUCCESS',
+          projects: projectList,
+          resume: resumeSummary,
+          profileImage: profileImageSummary,
+          language: defaultLang as LanguageCode,
+        })
         onProfileImageChange?.(profileImageSummary)
-        setSelectedLanguage(defaultLang as LanguageCode)
       } catch (error) {
-        if (!isMounted) {
-          return
-        }
-
-        setErrorMessage(error instanceof Error ? error.message : 'Unable to load admin data.')
-      } finally {
         if (isMounted) {
-          setIsLoading(false)
+          dispatch({ type: 'LOAD_ERROR', error: error instanceof Error ? error.message : 'Unable to load admin data.' })
         }
       }
     }
 
-    void loadAdminData()
-
-    return () => {
-      isMounted = false
-    }
+    void load()
+    return () => { isMounted = false }
   }, [])
 
   const resumeLinks = useMemo(() => {
-    if (!resume) {
-      return null
-    }
-
-    return {
-      view: toAbsoluteApiUrl(resume.viewUrl),
-      download: toAbsoluteApiUrl(resume.downloadUrl),
-    }
+    if (!resume) return null
+    return { view: toAbsoluteApiUrl(resume.viewUrl), download: toAbsoluteApiUrl(resume.downloadUrl) }
   }, [resume])
 
-  const profileImageUrl = useMemo(() => {
-    if (!profileImage) {
-      return null
-    }
-
-    return toAbsoluteApiUrl(profileImage.viewUrl)
-  }, [profileImage])
-
-  const resetProjectForm = () => {
-    setProjectForm(emptyProjectForm)
-    setEditingProjectId(null)
-  }
+  const profileImageUrl = useMemo(
+    () => (profileImage ? toAbsoluteApiUrl(profileImage.viewUrl) : null),
+    [profileImage],
+  )
 
   const handleProjectSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    setIsSavingProject(true)
-    setErrorMessage(null)
-    setStatusMessage(null)
+    dispatch({ type: 'SAVE_PROJECT_START' })
 
     try {
       const payload = {
         title: projectForm.title.trim(),
         description: projectForm.description.trim(),
         href: projectForm.href.trim(),
-        tags: projectForm.tags
-          .split(',')
-          .map((tag) => tag.trim())
-          .filter(Boolean),
+        tags: projectForm.tags.split(',').map((t) => t.trim()).filter(Boolean),
         sortOrder: Number(projectForm.sortOrder || 0),
       }
 
-      const savedProject = editingProjectId
+      const saved = editingProjectId
         ? await updateProject(editingProjectId, payload)
         : await createProject(payload)
 
-      setProjects((currentProjects) => {
-        const nextProjects = editingProjectId
-          ? currentProjects.map((project) =>
-              project.id === editingProjectId ? savedProject : project,
-            )
-          : [...currentProjects, savedProject]
-
-        return sortProjects(nextProjects)
-      })
-
-      setStatusMessage(editingProjectId ? t('admin.updateProject') + ' ✓' : t('admin.createProject') + ' ✓')
-      resetProjectForm()
+      dispatch({ type: 'SAVE_PROJECT_SUCCESS', project: saved, isEdit: !!editingProjectId })
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Unable to save project.')
-    } finally {
-      setIsSavingProject(false)
+      dispatch({ type: 'SAVE_PROJECT_ERROR', error: error instanceof Error ? error.message : 'Unable to save project.' })
     }
   }
 
-  const handleEditProject = (project: Project) => {
-    setEditingProjectId(project.id ?? null)
-    setProjectForm({
-      title: project.title,
-      description: project.description,
-      href: project.href,
-      tags: project.tags.join(', '),
-      sortOrder: `${project.sortOrder ?? 0}`,
-    })
-    setStatusMessage(null)
-    setErrorMessage(null)
-  }
-
-  const handleDeleteProject = async (projectId: string) => {
-    setErrorMessage(null)
-    setStatusMessage(null)
-
+  const handleDeleteConfirmed = async (projectId: string) => {
     try {
       await deleteProject(projectId)
-      setProjects((currentProjects) =>
-        currentProjects.filter((project) => project.id !== projectId),
-      )
-      setStatusMessage('Project deleted.')
-
-      if (editingProjectId === projectId) {
-        resetProjectForm()
-      }
+      dispatch({ type: 'DELETE_PROJECT_SUCCESS', projectId })
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Unable to delete project.')
+      dispatch({ type: 'DELETE_PROJECT_ERROR', error: error instanceof Error ? error.message : 'Unable to delete project.' })
     }
   }
 
   const handleResumeSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (!resumeFile) return
 
-    if (!resumeFile) {
-      setErrorMessage('Choose a PDF file before uploading.')
-      return
-    }
-
-    setIsUploadingResume(true)
-    setErrorMessage(null)
-    setStatusMessage(null)
+    dispatch({ type: 'UPLOAD_RESUME_START' })
 
     try {
-      const nextResume = await uploadResume(resumeFile)
-      setResume(nextResume)
-      setResumeFile(null)
-      setStatusMessage('Resume updated.')
+      const next = await uploadResume(resumeFile)
+      dispatch({ type: 'UPLOAD_RESUME_SUCCESS', resume: next })
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Unable to upload resume.')
-    } finally {
-      setIsUploadingResume(false)
+      dispatch({ type: 'UPLOAD_RESUME_ERROR', error: error instanceof Error ? error.message : 'Unable to upload resume.' })
     }
   }
 
   const handleProfileImageSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (!profileImageFile) return
 
-    if (!profileImageFile) {
-      setErrorMessage('Choose an image file before uploading.')
-      return
-    }
-
-    setIsUploadingProfileImage(true)
-    setErrorMessage(null)
-    setStatusMessage(null)
+    dispatch({ type: 'UPLOAD_PROFILE_IMAGE_START' })
 
     try {
-      const nextProfileImage = await uploadProfileImage(profileImageFile)
-      setProfileImage(nextProfileImage)
-      onProfileImageChange?.(nextProfileImage)
-      setProfileImageFile(null)
-      setStatusMessage('Profile image updated.')
+      const next = await uploadProfileImage(profileImageFile)
+      dispatch({ type: 'UPLOAD_PROFILE_IMAGE_SUCCESS', profileImage: next })
+      onProfileImageChange?.(next)
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Unable to upload profile image.')
-    } finally {
-      setIsUploadingProfileImage(false)
+      dispatch({ type: 'UPLOAD_PROFILE_IMAGE_ERROR', error: error instanceof Error ? error.message : 'Unable to upload profile image.' })
     }
   }
 
   const handleLanguageSave = async () => {
-    setIsSavingLanguage(true)
-    setErrorMessage(null)
-    setStatusMessage(null)
+    dispatch({ type: 'SAVE_LANGUAGE_START' })
 
     try {
       await updateDefaultLanguage(selectedLanguage)
       void i18n.changeLanguage(selectedLanguage)
-      setStatusMessage(t('admin.languageSaved'))
+      dispatch({ type: 'SAVE_LANGUAGE_SUCCESS', message: t('admin.languageSaved') })
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : 'Unable to update language.')
-    } finally {
-      setIsSavingLanguage(false)
+      dispatch({ type: 'SAVE_LANGUAGE_ERROR', error: error instanceof Error ? error.message : 'Unable to update language.' })
     }
   }
 
@@ -297,6 +358,7 @@ function AdminPage({ onProfileImageChange, onLogout }: AdminPageProps) {
       </section>
 
       <section className="admin-grid">
+        {/* Profile image */}
         <article className="card admin-card">
           <div className="admin-card-heading">
             <div className="admin-card-title">
@@ -327,20 +389,16 @@ function AdminPage({ onProfileImageChange, onLogout }: AdminPageProps) {
               <input
                 type="file"
                 accept="image/png,image/jpeg,image/webp,image/svg+xml"
-                onChange={(event) => setProfileImageFile(event.target.files?.[0] ?? null)}
+                onChange={(e) => dispatch({ type: 'SET_PROFILE_IMAGE_FILE', file: e.target.files?.[0] ?? null })}
               />
             </label>
-
-            <button
-              className="button button-primary"
-              type="submit"
-              disabled={isUploadingProfileImage}
-            >
+            <button className="button button-primary" type="submit" disabled={isUploadingProfileImage || !profileImageFile}>
               {isUploadingProfileImage ? t('admin.uploading') : t('admin.uploadImage')}
             </button>
           </form>
         </article>
 
+        {/* Resume */}
         <article className="card admin-card">
           <div className="admin-card-heading">
             <div className="admin-card-title">
@@ -382,16 +440,16 @@ function AdminPage({ onProfileImageChange, onLogout }: AdminPageProps) {
               <input
                 type="file"
                 accept="application/pdf"
-                onChange={(event) => setResumeFile(event.target.files?.[0] ?? null)}
+                onChange={(e) => dispatch({ type: 'SET_RESUME_FILE', file: e.target.files?.[0] ?? null })}
               />
             </label>
-
-            <button className="button button-primary" type="submit" disabled={isUploadingResume}>
+            <button className="button button-primary" type="submit" disabled={isUploadingResume || !resumeFile}>
               {isUploadingResume ? t('admin.uploading') : t('admin.uploadResume')}
             </button>
           </form>
         </article>
 
+        {/* Language */}
         <article className="card admin-card">
           <div className="admin-card-heading">
             <p className="project-label">{t('admin.language')}</p>
@@ -404,23 +462,19 @@ function AdminPage({ onProfileImageChange, onLogout }: AdminPageProps) {
                 key={code}
                 type="button"
                 className={`button ${selectedLanguage === code ? 'button-primary' : 'button-secondary'}`}
-                onClick={() => setSelectedLanguage(code as LanguageCode)}
+                onClick={() => dispatch({ type: 'SET_LANGUAGE', language: code as LanguageCode })}
               >
                 {label}
               </button>
             ))}
           </div>
 
-          <button
-            className="button button-primary"
-            type="button"
-            onClick={handleLanguageSave}
-            disabled={isSavingLanguage}
-          >
+          <button className="button button-primary" type="button" onClick={handleLanguageSave} disabled={isSavingLanguage}>
             {isSavingLanguage ? t('admin.languageSaving') : t('admin.saveLanguage')}
           </button>
         </article>
 
+        {/* Project form */}
         <article className="card admin-card">
           <div className="admin-card-heading">
             <p className="project-label">{t('admin.projects')}</p>
@@ -433,9 +487,7 @@ function AdminPage({ onProfileImageChange, onLogout }: AdminPageProps) {
               <input
                 type="text"
                 value={projectForm.title}
-                onChange={(event) =>
-                  setProjectForm((current) => ({ ...current, title: event.target.value }))
-                }
+                onChange={(e) => dispatch({ type: 'SET_PROJECT_FORM', field: 'title', value: e.target.value })}
                 placeholder="Modern dashboard platform"
               />
             </label>
@@ -445,9 +497,7 @@ function AdminPage({ onProfileImageChange, onLogout }: AdminPageProps) {
               <textarea
                 rows={4}
                 value={projectForm.description}
-                onChange={(event) =>
-                  setProjectForm((current) => ({ ...current, description: event.target.value }))
-                }
+                onChange={(e) => dispatch({ type: 'SET_PROJECT_FORM', field: 'description', value: e.target.value })}
                 placeholder="Short explanation of the project and your role."
               />
             </label>
@@ -457,9 +507,7 @@ function AdminPage({ onProfileImageChange, onLogout }: AdminPageProps) {
               <input
                 type="text"
                 value={projectForm.href}
-                onChange={(event) =>
-                  setProjectForm((current) => ({ ...current, href: event.target.value }))
-                }
+                onChange={(e) => dispatch({ type: 'SET_PROJECT_FORM', field: 'href', value: e.target.value })}
                 placeholder="https://example.com or #projects"
               />
             </label>
@@ -469,9 +517,7 @@ function AdminPage({ onProfileImageChange, onLogout }: AdminPageProps) {
               <input
                 type="text"
                 value={projectForm.tags}
-                onChange={(event) =>
-                  setProjectForm((current) => ({ ...current, tags: event.target.value }))
-                }
+                onChange={(e) => dispatch({ type: 'SET_PROJECT_FORM', field: 'tags', value: e.target.value })}
                 placeholder="React, Node.js, MongoDB"
               />
             </label>
@@ -481,23 +527,17 @@ function AdminPage({ onProfileImageChange, onLogout }: AdminPageProps) {
               <input
                 type="number"
                 value={projectForm.sortOrder}
-                onChange={(event) =>
-                  setProjectForm((current) => ({ ...current, sortOrder: event.target.value }))
-                }
+                onChange={(e) => dispatch({ type: 'SET_PROJECT_FORM', field: 'sortOrder', value: e.target.value })}
               />
             </label>
 
             <div className="admin-inline-actions">
               <button className="button button-primary" type="submit" disabled={isSavingProject}>
-                {isSavingProject
-                  ? t('admin.saving')
-                  : editingProjectId
-                    ? t('admin.updateProject')
-                    : t('admin.createProject')}
+                {isSavingProject ? t('admin.saving') : editingProjectId ? t('admin.updateProject') : t('admin.createProject')}
               </button>
 
               {editingProjectId ? (
-                <button className="button button-secondary" type="button" onClick={resetProjectForm}>
+                <button className="button button-secondary" type="button" onClick={() => dispatch({ type: 'CANCEL_EDIT' })}>
                   {t('admin.cancelEdit')}
                 </button>
               ) : null}
@@ -506,6 +546,7 @@ function AdminPage({ onProfileImageChange, onLogout }: AdminPageProps) {
         </article>
       </section>
 
+      {/* Projects list */}
       <section className="section admin-projects">
         <div className="section-title">
           <p className="eyebrow">{t('admin.storedProjects')}</p>
@@ -530,32 +571,52 @@ function AdminPage({ onProfileImageChange, onLogout }: AdminPageProps) {
 
                 <ul className="chip-list">
                   {project.tags.map((tag) => (
-                    <li key={tag} className="chip">
-                      {tag}
-                    </li>
+                    <li key={tag} className="chip">{tag}</li>
                   ))}
                 </ul>
 
-                <div className="admin-project-actions">
-                  {project.id ? (
-                    <>
-                      <button
-                        className="button button-secondary"
-                        type="button"
-                        onClick={() => handleEditProject(project)}
-                      >
-                        {t('admin.edit')}
-                      </button>
-                      <button
-                        className="button button-primary"
-                        type="button"
-                        onClick={() => handleDeleteProject(project.id!)}
-                      >
-                        {t('admin.delete')}
-                      </button>
-                    </>
-                  ) : null}
-                </div>
+                {project.id ? (
+                  <div className="admin-project-actions">
+                    {confirmDeleteId === project.id ? (
+                      <div className="admin-confirm-delete">
+                        <p className="admin-confirm-text">{t('admin.confirmDelete')}</p>
+                        <div className="admin-inline-actions">
+                          <button
+                            className="button button-primary"
+                            type="button"
+                            onClick={() => handleDeleteConfirmed(project.id!)}
+                          >
+                            {t('admin.confirmYes')}
+                          </button>
+                          <button
+                            className="button button-secondary"
+                            type="button"
+                            onClick={() => dispatch({ type: 'CANCEL_DELETE' })}
+                          >
+                            {t('admin.confirmNo')}
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <button
+                          className="button button-secondary"
+                          type="button"
+                          onClick={() => dispatch({ type: 'EDIT_PROJECT', project })}
+                        >
+                          {t('admin.edit')}
+                        </button>
+                        <button
+                          className="button button-primary"
+                          type="button"
+                          onClick={() => dispatch({ type: 'CONFIRM_DELETE', projectId: project.id! })}
+                        >
+                          {t('admin.delete')}
+                        </button>
+                      </>
+                    )}
+                  </div>
+                ) : null}
               </article>
             ))}
           </div>

@@ -1,17 +1,15 @@
 import jwt from 'jsonwebtoken'
 
 export function requireAuth(request, response, next) {
-  const auth = request.headers.authorization
+  const token = request.cookies?.admin_token
 
-  if (!auth?.startsWith('Bearer ')) {
+  if (!token) {
     response.status(401).json({ message: 'Unauthorized.' })
     return
   }
 
-  const token = auth.slice(7)
-
   try {
-    const payload = jwt.verify(token, process.env.JWT_SECRET || 'changeme')
+    const payload = jwt.verify(token, process.env.JWT_SECRET)
     request.admin = payload
     next()
   } catch {

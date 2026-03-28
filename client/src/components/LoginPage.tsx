@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next'
 import { login } from '../lib/api.ts'
 
 type LoginPageProps = {
-  onLogin: (token: string) => void
+  onLogin: () => void
 }
 
 function LoginPage({ onLogin }: LoginPageProps) {
@@ -19,8 +19,8 @@ function LoginPage({ onLogin }: LoginPageProps) {
     setError(null)
 
     try {
-      const token = await login(username.trim(), password)
-      onLogin(token)
+      await login(username.trim(), password)
+      onLogin()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Login failed.')
     } finally {

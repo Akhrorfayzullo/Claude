@@ -2,18 +2,14 @@ import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { SUPPORTED_LANGUAGES, type LanguageCode } from '../i18n/index.ts'
 
+const ownerName = import.meta.env.VITE_OWNER_NAME || 'Akhrorbek'
+
 type NavbarProps = {
   theme: 'dark' | 'light'
   onToggleTheme: () => void
   isAdminView?: boolean
   profileImageUrl?: string | null
   isScrolled?: boolean
-}
-
-const LANGUAGE_META: Record<LanguageCode, { flag: string; shortLabel: string }> = {
-  en: { flag: '🇺🇸', shortLabel: 'EN' },
-  ko: { flag: '🇰🇷', shortLabel: 'KO' },
-  uz: { flag: '🇺🇿', shortLabel: 'UZ' },
 }
 
 function Navbar({
@@ -25,11 +21,6 @@ function Navbar({
 }: NavbarProps) {
   const { t, i18n } = useTranslation()
   const [menuOpen, setMenuOpen] = useState(false)
-  const currentLanguage =
-    SUPPORTED_LANGUAGES.find(({ code }) => i18n.language.startsWith(code))?.code ?? 'en'
-  const currentLanguageIndex = SUPPORTED_LANGUAGES.findIndex(({ code }) => code === currentLanguage)
-  const nextLanguage =
-    SUPPORTED_LANGUAGES[(currentLanguageIndex + 1) % SUPPORTED_LANGUAGES.length]?.code ?? 'en'
 
   const navItems = [
     { href: '#about', label: t('nav.about') },
@@ -40,26 +31,18 @@ function Navbar({
 
   const links = isAdminView ? [{ href: '/', label: t('nav.backToSite') }] : navItems
 
-  const handleLanguageChange = (code: LanguageCode) => {
-    void i18n.changeLanguage(code)
-  }
-
-  const handleLanguageToggle = () => {
-    handleLanguageChange(nextLanguage)
-  }
-
   return (
     <header className={`site-header ${isScrolled ? 'site-header-scrolled' : ''}`}>
       <nav className="nav shell" aria-label="Primary">
         <a className="brand" href={isAdminView ? '/' : '#hero'}>
           <span className="brand-mark">
             {profileImageUrl ? (
-              <img className="brand-image" src={profileImageUrl} alt="Akhrorbek profile" />
+              <img className="brand-image" src={profileImageUrl} alt={`${ownerName} profile`} />
             ) : (
-              'A'
+              ownerName.charAt(0).toUpperCase()
             )}
           </span>
-          <span>Akhrorbek</span>
+          <span>{ownerName}</span>
         </a>
 
         <button
@@ -90,33 +73,27 @@ function Navbar({
           </div>
 
           <div className="nav-controls">
-            <button
-              type="button"
-              className="lang-toggle"
-              onClick={handleLanguageToggle}
-              aria-label={`Switch language. Current language ${currentLanguage}.`}
-              title={`Current language: ${currentLanguage.toUpperCase()}. Click to switch.`}
-            >
-              <span className="lang-toggle-flag" aria-hidden="true">
-                {LANGUAGE_META[currentLanguage].flag}
-              </span>
-              <span className="lang-toggle-code">{LANGUAGE_META[currentLanguage].shortLabel}</span>
-            </button>
+            <div className="lang-switcher">
+              {SUPPORTED_LANGUAGES.map(({ code, label }) => (
+                <button
+                  key={code}
+                  type="button"
+                  className={`lang-btn ${i18n.language === code ? 'lang-btn-active' : ''}`}
+                  onClick={() => void i18n.changeLanguage(code as LanguageCode)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
 
             <button
               type="button"
-              className={`theme-toggle ${theme === 'light' ? 'theme-toggle-active' : ''}`}
+              className="theme-toggle"
               onClick={onToggleTheme}
               aria-label={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
             >
-              <span className="theme-toggle-track" aria-hidden="true">
-                <span className="theme-toggle-thumb">
-                  <span className="theme-toggle-icon">{theme === 'dark' ? '☾' : '☀'}</span>
-                </span>
-              </span>
-              <span className="theme-toggle-label">
-                {theme === 'dark' ? t('theme.light') : t('theme.dark')}
-              </span>
+              <span className="theme-toggle-orb" />
+              <span>{theme === 'dark' ? t('theme.light') : t('theme.dark')}</span>
             </button>
           </div>
         </div>

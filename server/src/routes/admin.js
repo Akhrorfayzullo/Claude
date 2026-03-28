@@ -1,6 +1,7 @@
 import { Router } from 'express'
 import fs from 'node:fs/promises'
 import path from 'node:path'
+import mongoose from 'mongoose'
 import multer from 'multer'
 import { requireAuth } from '../middleware/auth.js'
 import { ProfileImage } from '../models/ProfileImage.js'
@@ -62,7 +63,7 @@ const profileImageUpload = multer({
     const allowedMimeTypes = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'])
     const extension = path.extname(file.originalname).toLowerCase()
     const allowedExtensions = new Set(['.png', '.jpg', '.jpeg', '.webp', '.svg'])
-    const isAccepted = allowedMimeTypes.has(file.mimetype) || allowedExtensions.has(extension)
+    const isAccepted = allowedMimeTypes.has(file.mimetype) && allowedExtensions.has(extension)
 
     callback(isAccepted ? null : new Error('Only PNG, JPG, WEBP, or SVG images are supported.'), isAccepted)
   },
@@ -84,6 +85,16 @@ function normalizeTags(value) {
     .filter(Boolean)
 }
 
+function isValidHref(href) {
+  if (href.startsWith('#')) return true
+  try {
+    const url = new URL(href)
+    return url.protocol === 'http:' || url.protocol === 'https:'
+  } catch {
+    return false
+  }
+}
+
 function getProjectPayload(body) {
   return {
     title: `${body.title ?? ''}`.trim(),
@@ -99,11 +110,24 @@ function validateProjectPayload(payload) {
     return 'Title, description, and link are required.'
   }
 
+  if (!isValidHref(payload.href)) {
+    return 'Link must be a valid URL (https://...) or a hash (#section).'
+  }
+
   if (!Number.isFinite(payload.sortOrder)) {
     return 'Sort order must be a valid number.'
   }
 
   return null
+}
+
+function requireValidObjectId(request, response, next) {
+  const { projectId } = request.params
+  if (!mongoose.Types.ObjectId.isValid(projectId)) {
+    response.status(400).json({ message: 'Invalid project ID.' })
+    return
+  }
+  next()
 }
 
 router.use(requireAuth)
@@ -125,7 +149,7 @@ router.post('/projects', async (request, response, next) => {
   }
 })
 
-router.put('/projects/:projectId', async (request, response, next) => {
+router.put('/projects/:projectId', requireValidObjectId, async (request, response, next) => {
   try {
     const payload = getProjectPayload(request.body)
     const validationError = validateProjectPayload(payload)
@@ -151,7 +175,7 @@ router.put('/projects/:projectId', async (request, response, next) => {
   }
 })
 
-router.delete('/projects/:projectId', async (request, response, next) => {
+router.delete('/projects/:projectId', requireValidObjectId, async (request, response, next) => {
   try {
     const deletedProject = await Project.findByIdAndDelete(request.params.projectId)
 
@@ -173,6 +197,7 @@ router.post('/resume', resumeUpload.single('resume'), async (request, response, 
       return
     }
 
+    // Find old record before creating new one
     const previousResume = await Resume.findOne().sort({ updatedAt: -1, createdAt: -1 })
 
     const resume = await Resume.create({
@@ -183,6 +208,7 @@ router.post('/resume', resumeUpload.single('resume'), async (request, response, 
       filePath: path.resolve(request.file.path),
     })
 
+    // Delete old record and file after new one is safely created
     if (previousResume) {
       await Resume.findByIdAndDelete(previousResume._id)
       await fs.rm(previousResume.filePath, { force: true })
@@ -204,6 +230,7 @@ router.post(
         return
       }
 
+      // Find old record before creating new one
       const previousProfileImage = await ProfileImage.findOne().sort({ updatedAt: -1, createdAt: -1 })
 
       const profileImage = await ProfileImage.create({
@@ -214,6 +241,7 @@ router.post(
         filePath: path.resolve(request.file.path),
       })
 
+      // Delete old record and file after new one is safely created
       if (previousProfileImage) {
         await ProfileImage.findByIdAndDelete(previousProfileImage._id)
         await fs.rm(previousProfileImage.filePath, { force: true })
