@@ -152,15 +152,10 @@ async function start() {
   await connectToDatabase(process.env.MONGODB_URI)
   await seedAdminUser()
 
-  try {
-    await fs.access(clientDistPath)
-    app.use(express.static(clientDistPath))
-    app.get(/^(?!\/api).*/, (_request, response) => {
-      response.sendFile(path.join(clientDistPath, 'index.html'))
-    })
-  } catch {
-    // Client build is optional during API development.
-  }
+  app.use(express.static(clientDistPath))
+  app.get(/^(?!\/api).*/, (_request, response) => {
+    response.sendFile(path.join(clientDistPath, 'index.html'))
+  })
 
   app.listen(port, () => {
     logger.info(`Portfolio API running on http://localhost:${port}`)
