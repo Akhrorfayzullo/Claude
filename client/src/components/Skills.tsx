@@ -1,18 +1,27 @@
+import { useMemo } from 'react'
 import { useTranslation } from 'react-i18next'
-import { skills } from '../data/skills.ts'
+import type { Skill } from '../types/skill.types.ts'
 import ScrollReveal from './ScrollReveal.tsx'
 import SectionTitle from './SectionTitle.tsx'
 
-const groupedSkills = Object.entries(
-  skills.reduce<Record<string, string[]>>((accumulator, skill) => {
-    accumulator[skill.category] ??= []
-    accumulator[skill.category].push(skill.name)
-    return accumulator
-  }, {}),
-)
+type SkillsProps = {
+  skills: Skill[]
+}
 
-function Skills() {
+function Skills({ skills }: SkillsProps) {
   const { t } = useTranslation()
+
+  const groupedSkills = useMemo(
+    () =>
+      Object.entries(
+        skills.reduce<Record<string, string[]>>((accumulator, skill) => {
+          accumulator[skill.category] ??= []
+          accumulator[skill.category].push(skill.name)
+          return accumulator
+        }, {}),
+      ),
+    [skills],
+  )
 
   return (
     <section id="skills" className="section shell">

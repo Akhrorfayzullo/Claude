@@ -5,6 +5,7 @@ export type Project = {
   href: string
   tags: string[]
   sortOrder?: number
+  imageUrl?: string | null
   createdAt?: string
   updatedAt?: string
 }

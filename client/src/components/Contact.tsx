@@ -2,19 +2,26 @@ import { useTranslation } from 'react-i18next'
 import SectionTitle from './SectionTitle.tsx'
 import ScrollReveal from './ScrollReveal.tsx'
 
-function Contact() {
+type ContactProps = {
+  email?: string
+  github?: string
+}
+
+function Contact({ email = 'akhrorfayzullo@gmail.com', github = 'https://github.com/Akhrorfayzullo' }: ContactProps) {
   const { t } = useTranslation()
+
+  const githubDisplay = github.replace(/^https?:\/\//, '')
 
   const contactItems = [
     {
       label: t('contact.email'),
-      value: 'akhrorfayzullo@gmail.com',
-      href: 'mailto:akhrorfayzullo@gmail.com',
+      value: email,
+      href: `mailto:${email}`,
     },
     {
       label: t('contact.github'),
-      value: 'github.com/Akhrorfayzullo',
-      href: 'https://github.com/Akhrorfayzullo',
+      value: githubDisplay,
+      href: github,
     },
     {
       label: t('contact.location'),
@@ -31,7 +38,7 @@ function Contact() {
         <div className="contact-layout">
           <div className="card">
             <p className="section-lead">{t('contact.lead')}</p>
-            <a className="button button-primary" href="mailto:akhrorfayzullo@gmail.com">
+            <a className="button button-primary" href={`mailto:${email}`}>
               {t('contact.startConversation')}
             </a>
           </div>

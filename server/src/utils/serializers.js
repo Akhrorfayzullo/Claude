@@ -6,6 +6,7 @@ export function serializeProject(projectDocument) {
     href: projectDocument.href,
     tags: projectDocument.tags,
     sortOrder: projectDocument.sortOrder,
+    imageUrl: projectDocument.imageUrl ?? null,
     createdAt: projectDocument.createdAt,
     updatedAt: projectDocument.updatedAt,
   }
@@ -31,5 +32,14 @@ export function serializeProfileImage(profileImageDocument) {
     size: profileImageDocument.size,
     updatedAt: profileImageDocument.updatedAt,
     viewUrl: '/api/profile-image/file',
+  }
+}
+
+export function serializeSkill(skillDocument) {
+  return {
+    id: skillDocument._id.toString(),
+    name: skillDocument.name,
+    category: skillDocument.category,
+    sortOrder: skillDocument.sortOrder,
   }
 }

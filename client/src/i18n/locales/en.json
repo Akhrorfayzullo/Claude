@@ -41,7 +41,9 @@
   "projects": {
     "eyebrow": "Selected Work",
     "title": "A few projects that reflect how I approach product and interface design.",
-    "empty": "Projects will appear here once they are added from the admin page."
+    "empty": "Projects will appear here once they are added from the admin page.",
+    "featuredLabel": "Featured Project",
+    "openProject": "Open project"
   },
   "contact": {
     "eyebrow": "Contact",
@@ -103,7 +105,25 @@
     "languageLabel": "Site default language",
     "saveLanguage": "Save language",
     "languageSaved": "Default language updated.",
-    "languageSaving": "Saving..."
+    "languageSaving": "Saving...",
+    "contactSettings": "Contact",
+    "contactSettingsTitle": "Contact details",
+    "contactEmail": "Email address",
+    "contactGithub": "GitHub URL",
+    "saveContact": "Save contact",
+    "heroStats": "Hero Stats",
+    "heroStatsTitle": "Numbers shown on the hero card",
+    "heroYears": "Years (e.g. 3+)",
+    "heroBuilds": "Builds (e.g. 12)",
+    "saveHeroStats": "Save stats",
+    "skills": "Skills",
+    "addSkill": "Add skill",
+    "editSkill": "Edit skill",
+    "skillName": "Skill name",
+    "skillCategory": "Category",
+    "createSkill": "Add skill",
+    "updateSkill": "Update skill",
+    "projectImage": "Project image (PNG, JPG, WEBP — optional)"
   },
   "login": {
     "title": "Admin Login",

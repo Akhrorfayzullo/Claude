@@ -121,14 +121,19 @@ function Navbar({
                 aria-expanded={langOpen}
                 onClick={() => setLangOpen((v) => !v)}
               >
-                <span className="lang-toggle-flag">{currentLang.flag}</span>
+                <img
+                  className="lang-toggle-flag"
+                  src={currentLang.flagUrl}
+                  alt={currentLang.label}
+                  aria-hidden="true"
+                />
                 <span className="lang-toggle-code">{currentLang.code.toUpperCase()}</span>
                 <span className={`lang-toggle-chevron ${langOpen ? 'lang-toggle-chevron-open' : ''}`}>▾</span>
               </button>
 
               {langOpen && (
                 <ul className="lang-menu" role="listbox">
-                  {SUPPORTED_LANGUAGES.map(({ code, label, flag }) => (
+                  {SUPPORTED_LANGUAGES.map(({ code, label, flagUrl }) => (
                     <li
                       key={code}
                       role="option"
@@ -136,8 +141,14 @@ function Navbar({
                       className={`lang-menu-item ${i18n.language === code ? 'lang-menu-item-active' : ''}`}
                       onClick={() => handleLanguageChange(code as LanguageCode)}
                     >
-                      <span className="lang-menu-flag">{flag}</span>
-                      <span>{label}</span>
+                      <img
+                        className="lang-menu-flag"
+                        src={flagUrl}
+                        alt={label}
+                        aria-hidden="true"
+                      />
+                      <span className="lang-menu-label">{label}</span>
+                      {i18n.language === code && <span className="lang-menu-check" aria-hidden="true">✓</span>}
                     </li>
                   ))}
                 </ul>

@@ -7,16 +7,44 @@ import { requireAuth } from '../middleware/auth.js'
 import { ProfileImage } from '../models/ProfileImage.js'
 import { Project } from '../models/Project.js'
 import { Resume } from '../models/Resume.js'
+import { Skill } from '../models/Skill.js'
 import {
   serializeProfileImage,
   serializeProject,
   serializeResume,
+  serializeSkill,
 } from '../utils/serializers.js'
 
 const router = Router()
 
 const resumesDirectory = path.resolve(process.cwd(), 'uploads', 'resumes')
 const brandingDirectory = path.resolve(process.cwd(), 'uploads', 'branding')
+const projectsDirectory = path.resolve(process.cwd(), 'uploads', 'projects')
+
+const projectImageUpload = multer({
+  storage: multer.diskStorage({
+    destination: (_request, _file, callback) => {
+      callback(null, projectsDirectory)
+    },
+    filename: (_request, file, callback) => {
+      const extension = path.extname(file.originalname) || '.jpg'
+      const safeBaseName = path
+        .basename(file.originalname, extension)
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+      callback(null, `${Date.now()}-${safeBaseName || 'project'}${extension}`)
+    },
+  }),
+  fileFilter: (_request, file, callback) => {
+    const allowedMimeTypes = new Set(['image/png', 'image/jpeg', 'image/webp'])
+    const extension = path.extname(file.originalname).toLowerCase()
+    const allowedExtensions = new Set(['.png', '.jpg', '.jpeg', '.webp'])
+    const isAccepted = allowedMimeTypes.has(file.mimetype) && allowedExtensions.has(extension)
+    callback(isAccepted ? null : new Error('Only PNG, JPG, or WEBP images are supported.'), isAccepted)
+  },
+  limits: { fileSize: 5 * 1024 * 1024 },
+})
 
 const resumeUpload = multer({
   storage: multer.diskStorage({
@@ -132,14 +160,20 @@ function requireValidObjectId(request, response, next) {
 
 router.use(requireAuth)
 
-router.post('/projects', async (request, response, next) => {
+router.post('/projects', projectImageUpload.single('projectImage'), async (request, response, next) => {
   try {
     const payload = getProjectPayload(request.body)
     const validationError = validateProjectPayload(payload)
 
     if (validationError) {
+      if (request.file) await fs.rm(request.file.path, { force: true })
       response.status(400).json({ message: validationError })
       return
+    }
+
+    if (request.file) {
+      payload.imageUrl = `/uploads/projects/${request.file.filename}`
+      payload.imagePath = path.resolve(request.file.path)
     }
 
     const project = await Project.create(payload)
@@ -149,25 +183,39 @@ router.post('/projects', async (request, response, next) => {
   }
 })
 
-router.put('/projects/:projectId', requireValidObjectId, async (request, response, next) => {
+router.put('/projects/:projectId', requireValidObjectId, projectImageUpload.single('projectImage'), async (request, response, next) => {
   try {
     const payload = getProjectPayload(request.body)
     const validationError = validateProjectPayload(payload)
 
     if (validationError) {
+      if (request.file) await fs.rm(request.file.path, { force: true })
       response.status(400).json({ message: validationError })
       return
+    }
+
+    const existing = await Project.findById(request.params.projectId)
+    if (!existing) {
+      if (request.file) await fs.rm(request.file.path, { force: true })
+      response.status(404).json({ message: 'Project not found.' })
+      return
+    }
+
+    if (request.file) {
+      // Delete old image if one existed
+      if (existing.imagePath) await fs.rm(existing.imagePath, { force: true })
+      payload.imageUrl = `/uploads/projects/${request.file.filename}`
+      payload.imagePath = path.resolve(request.file.path)
+    } else {
+      // Preserve existing image if no new one was uploaded
+      payload.imageUrl = existing.imageUrl ?? null
+      payload.imagePath = existing.imagePath ?? null
     }
 
     const project = await Project.findByIdAndUpdate(request.params.projectId, payload, {
       new: true,
       runValidators: true,
     })
-
-    if (!project) {
-      response.status(404).json({ message: 'Project not found.' })
-      return
-    }
 
     response.json(serializeProject(project))
   } catch (error) {
@@ -182,6 +230,10 @@ router.delete('/projects/:projectId', requireValidObjectId, async (request, resp
     if (!deletedProject) {
       response.status(404).json({ message: 'Project not found.' })
       return
+    }
+
+    if (deletedProject.imagePath) {
+      await fs.rm(deletedProject.imagePath, { force: true })
     }
 
     response.status(204).send()
@@ -253,5 +305,78 @@ router.post(
     }
   },
 )
+
+// ── Skills ─────────────────────────────────────────────────────────────────
+
+router.post('/skills', async (request, response, next) => {
+  try {
+    const name = `${request.body.name ?? ''}`.trim()
+    const category = `${request.body.category ?? ''}`.trim()
+    const sortOrder = Number(request.body.sortOrder ?? 0)
+
+    if (!name || !category) {
+      response.status(400).json({ message: 'Skill name and category are required.' })
+      return
+    }
+
+    const skill = await Skill.create({ name, category, sortOrder })
+    response.status(201).json(serializeSkill(skill))
+  } catch (error) {
+    next(error)
+  }
+})
+
+router.put('/skills/:skillId', async (request, response, next) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(request.params.skillId)) {
+      response.status(400).json({ message: 'Invalid skill ID.' })
+      return
+    }
+
+    const name = `${request.body.name ?? ''}`.trim()
+    const category = `${request.body.category ?? ''}`.trim()
+    const sortOrder = Number(request.body.sortOrder ?? 0)
+
+    if (!name || !category) {
+      response.status(400).json({ message: 'Skill name and category are required.' })
+      return
+    }
+
+    const skill = await Skill.findByIdAndUpdate(
+      request.params.skillId,
+      { name, category, sortOrder },
+      { new: true, runValidators: true },
+    )
+
+    if (!skill) {
+      response.status(404).json({ message: 'Skill not found.' })
+      return
+    }
+
+    response.json(serializeSkill(skill))
+  } catch (error) {
+    next(error)
+  }
+})
+
+router.delete('/skills/:skillId', async (request, response, next) => {
+  try {
+    if (!mongoose.Types.ObjectId.isValid(request.params.skillId)) {
+      response.status(400).json({ message: 'Invalid skill ID.' })
+      return
+    }
+
+    const deleted = await Skill.findByIdAndDelete(request.params.skillId)
+
+    if (!deleted) {
+      response.status(404).json({ message: 'Skill not found.' })
+      return
+    }
+
+    response.status(204).send()
+  } catch (error) {
+    next(error)
+  }
+})
 
 export default router

@@ -11,19 +11,26 @@ import Navbar from './components/Navbar'
 import Projects from './components/Projects'
 import Skills from './components/Skills'
 import { projects as fallbackProjects } from './data/projects.ts'
+import { skills as fallbackSkills } from './data/skills.ts'
 import i18n from './i18n/index.ts'
 import {
   checkAuth,
+  fetchContactSettings,
   fetchDefaultLanguage,
+  fetchHeroStats,
   fetchProfileImage,
   fetchProjects,
   fetchResume,
+  fetchSkills,
   logout,
   toAbsoluteApiUrl,
+  type ContactSettings,
+  type HeroStats,
 } from './lib/api.ts'
 import type { ProfileImageSummary } from './types/profile-image.types.ts'
 import type { Project } from './types/project.types.ts'
 import type { ResumeSummary } from './types/resume.types.ts'
+import type { Skill } from './types/skill.types.ts'
 
 type Theme = 'dark' | 'light'
 
@@ -39,8 +46,14 @@ function getInitialTheme(): Theme {
 function App() {
   const [theme, setTheme] = useState<Theme>(getInitialTheme)
   const [projects, setProjects] = useState<Project[]>(fallbackProjects)
+  const [skills, setSkills] = useState<Skill[]>(fallbackSkills)
   const [profileImage, setProfileImage] = useState<ProfileImageSummary | null>(null)
   const [resume, setResume] = useState<ResumeSummary | null>(null)
+  const [contactSettings, setContactSettings] = useState<ContactSettings>({
+    email: 'akhrorfayzullo@gmail.com',
+    github: 'https://github.com/Akhrorfayzullo',
+  })
+  const [heroStats, setHeroStats] = useState<HeroStats>({ years: '3+', builds: '12' })
   const [isScrolled, setIsScrolled] = useState(false)
   // null = checking, false = not logged in, string = username
   const [authUser, setAuthUser] = useState<string | null | false>(null)
@@ -97,6 +110,13 @@ function App() {
       }
 
       try {
+        const skillList = await fetchSkills()
+        if (isMounted && skillList.length > 0) setSkills(skillList)
+      } catch {
+        // Skills fall back to static data.
+      }
+
+      try {
         const resumeSummary = await fetchResume()
         if (isMounted) setResume(resumeSummary)
       } catch {
@@ -108,6 +128,16 @@ function App() {
         if (isMounted) setProfileImage(profileImageSummary)
       } catch {
         // Navbar falls back to letter badge.
+      }
+
+      try {
+        const [contact, stats] = await Promise.all([fetchContactSettings(), fetchHeroStats()])
+        if (isMounted) {
+          setContactSettings(contact)
+          setHeroStats(stats)
+        }
+      } catch {
+        // Keep hardcoded defaults.
       }
     }
 
@@ -151,14 +181,14 @@ function App() {
           renderAdminContent()
         ) : (
           <main>
-            <Hero theme={theme} resumeUrl={resumeUrl} />
+            <Hero theme={theme} resumeUrl={resumeUrl} years={heroStats.years} builds={heroStats.builds} />
             <About />
-            <Skills />
+            <Skills skills={skills} />
             <Projects projects={projects} />
-            <Contact />
+            <Contact email={contactSettings.email} github={contactSettings.github} />
           </main>
         )}
-        <Footer />
+        <Footer email={contactSettings.email} github={contactSettings.github} />
       </div>
     </I18nextProvider>
   )

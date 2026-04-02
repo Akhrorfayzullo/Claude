@@ -17,6 +17,7 @@ import settingsRoutes from './routes/settings.js'
 import profileImageRoutes from './routes/profile-image.js'
 import projectsRoutes from './routes/projects.js'
 import resumeRoutes from './routes/resume.js'
+import skillsRoutes from './routes/skills.js'
 import { connectToDatabase } from './db/connect.js'
 import { AdminUser } from './models/AdminUser.js'
 
@@ -36,6 +37,7 @@ const serverRoot = path.resolve(__dirname, '..')
 const clientDistPath = path.resolve(serverRoot, '..', 'client', 'dist')
 const uploadsDirectory = path.resolve(serverRoot, 'uploads', 'resumes')
 const brandingDirectory = path.resolve(serverRoot, 'uploads', 'branding')
+const projectsUploadsDirectory = path.resolve(serverRoot, 'uploads', 'projects')
 
 const app = express()
 const port = Number(process.env.PORT || 4000)
@@ -104,9 +106,13 @@ app.get('/api/health', (_request, response) => {
   response.json({ ok: true })
 })
 
+// Serve uploaded project images publicly
+app.use('/uploads/projects', express.static(path.resolve(serverRoot, 'uploads', 'projects')))
+
 app.use('/api/auth', authRoutes)
 app.use('/api/settings', settingsRoutes)
 app.use('/api/projects', projectsRoutes)
+app.use('/api/skills', skillsRoutes)
 app.use('/api/resume', resumeRoutes)
 app.use('/api/profile-image', profileImageRoutes)
 app.use('/api/admin', adminRoutes)
@@ -142,6 +148,7 @@ async function seedAdminUser() {
 async function start() {
   await fs.mkdir(uploadsDirectory, { recursive: true })
   await fs.mkdir(brandingDirectory, { recursive: true })
+  await fs.mkdir(projectsUploadsDirectory, { recursive: true })
   await connectToDatabase(process.env.MONGODB_URI)
   await seedAdminUser()
 

@@ -41,7 +41,9 @@
   "projects": {
     "eyebrow": "선별된 작업",
     "title": "제품과 인터페이스 디자인에 접근하는 방식을 보여주는 몇 가지 프로젝트.",
-    "empty": "관리자 페이지에서 프로젝트를 추가하면 여기에 표시됩니다."
+    "empty": "관리자 페이지에서 프로젝트를 추가하면 여기에 표시됩니다.",
+    "featuredLabel": "주요 프로젝트",
+    "openProject": "프로젝트 열기"
   },
   "contact": {
     "eyebrow": "연락",
@@ -103,7 +105,25 @@
     "languageLabel": "사이트 기본 언어",
     "saveLanguage": "언어 저장",
     "languageSaved": "기본 언어가 업데이트되었습니다.",
-    "languageSaving": "저장 중..."
+    "languageSaving": "저장 중...",
+    "contactSettings": "연락처",
+    "contactSettingsTitle": "연락처 정보",
+    "contactEmail": "이메일 주소",
+    "contactGithub": "GitHub URL",
+    "saveContact": "연락처 저장",
+    "heroStats": "히어로 통계",
+    "heroStatsTitle": "히어로 카드에 표시되는 숫자",
+    "heroYears": "경력 (예: 3+)",
+    "heroBuilds": "프로젝트 수 (예: 12)",
+    "saveHeroStats": "통계 저장",
+    "skills": "기술",
+    "addSkill": "기술 추가",
+    "editSkill": "기술 편집",
+    "skillName": "기술 이름",
+    "skillCategory": "카테고리",
+    "createSkill": "기술 추가",
+    "updateSkill": "기술 업데이트",
+    "projectImage": "프로젝트 이미지 (PNG, JPG, WEBP — 선택 사항)"
   },
   "login": {
     "title": "관리자 로그인",

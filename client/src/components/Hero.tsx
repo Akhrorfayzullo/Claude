@@ -6,6 +6,8 @@ import DocumentIcon from './DocumentIcon.tsx'
 type HeroProps = {
   theme: 'dark' | 'light'
   resumeUrl?: string | null
+  years?: string
+  builds?: string
 }
 
 const stackBadges = ['React', 'Node', 'TypeScript', 'MongoDB']
@@ -20,7 +22,7 @@ const heroParticles = [
   { x: '88%', y: '58%', size: '8px', delay: '3.1s', duration: '8.2s' },
 ]
 
-function Hero({ theme, resumeUrl }: HeroProps) {
+function Hero({ theme, resumeUrl, years = '3+', builds = '12' }: HeroProps) {
   const { t } = useTranslation()
 
   const handlePointerMove = (event: ReactPointerEvent<HTMLDivElement>) => {
@@ -125,12 +127,12 @@ function Hero({ theme, resumeUrl }: HeroProps) {
           </div>
 
           <div className="hero-side-card hero-side-card-left">
-            <span className="hero-side-number">3+</span>
+            <span className="hero-side-number">{years}</span>
             <p>{t('hero.yearsDesc')}</p>
           </div>
 
           <div className="hero-side-card hero-side-card-right">
-            <span className="hero-side-number">12</span>
+            <span className="hero-side-number">{builds}</span>
             <p>{t('hero.buildsDesc')}</p>
           </div>
         </div>

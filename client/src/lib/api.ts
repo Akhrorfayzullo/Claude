@@ -1,6 +1,7 @@
 import type { Project } from '../types/project.types.ts'
 import type { ProfileImageSummary } from '../types/profile-image.types.ts'
 import type { ResumeSummary } from '../types/resume.types.ts'
+import type { Skill } from '../types/skill.types.ts'
 
 type ProjectPayload = {
   title: string
@@ -8,6 +9,17 @@ type ProjectPayload = {
   href: string
   tags: string[]
   sortOrder: number
+  imageFile?: File | null
+}
+
+export type ContactSettings = {
+  email: string
+  github: string
+}
+
+export type HeroStats = {
+  years: string
+  builds: string
 }
 
 const apiBaseUrl = (import.meta.env.VITE_API_BASE_URL ?? '').replace(/\/$/, '')
@@ -110,19 +122,27 @@ export async function fetchProfileImage() {
 }
 
 export async function createProject(payload: ProjectPayload) {
-  return requestJson<Project>('/api/admin/projects', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  })
+  const formData = new FormData()
+  formData.append('title', payload.title)
+  formData.append('description', payload.description)
+  formData.append('href', payload.href)
+  formData.append('tags', payload.tags.join(','))
+  formData.append('sortOrder', String(payload.sortOrder))
+  if (payload.imageFile) formData.append('projectImage', payload.imageFile)
+
+  return requestJson<Project>('/api/admin/projects', { method: 'POST', body: formData })
 }
 
 export async function updateProject(projectId: string, payload: ProjectPayload) {
-  return requestJson<Project>(`/api/admin/projects/${projectId}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload),
-  })
+  const formData = new FormData()
+  formData.append('title', payload.title)
+  formData.append('description', payload.description)
+  formData.append('href', payload.href)
+  formData.append('tags', payload.tags.join(','))
+  formData.append('sortOrder', String(payload.sortOrder))
+  if (payload.imageFile) formData.append('projectImage', payload.imageFile)
+
+  return requestJson<Project>(`/api/admin/projects/${projectId}`, { method: 'PUT', body: formData })
 }
 
 export async function deleteProject(projectId: string) {
@@ -162,4 +182,59 @@ export function toAbsoluteApiUrl(path: string) {
   }
 
   return apiBaseUrl ? `${apiBaseUrl}${path}` : path
+}
+
+export async function fetchContactSettings(): Promise<ContactSettings> {
+  return requestJson<ContactSettings>('/api/settings/contact')
+}
+
+export async function updateContactSettings(payload: ContactSettings): Promise<ContactSettings> {
+  return requestJson<ContactSettings>('/api/settings/contact', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function fetchHeroStats(): Promise<HeroStats> {
+  return requestJson<HeroStats>('/api/settings/hero-stats')
+}
+
+export async function updateHeroStats(payload: HeroStats): Promise<HeroStats> {
+  return requestJson<HeroStats>('/api/settings/hero-stats', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function fetchSkills(): Promise<Skill[]> {
+  return requestJson<Skill[]>('/api/skills')
+}
+
+export async function createSkill(payload: Omit<Skill, 'id'>): Promise<Skill> {
+  return requestJson<Skill>('/api/admin/skills', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function updateSkill(skillId: string, payload: Omit<Skill, 'id'>): Promise<Skill> {
+  return requestJson<Skill>(`/api/admin/skills/${skillId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  })
+}
+
+export async function deleteSkill(skillId: string): Promise<void> {
+  const response = await fetch(getApiUrl(`/api/admin/skills/${skillId}`), {
+    method: 'DELETE',
+    credentials: 'include',
+  })
+
+  if (!response.ok) {
+    throw new Error(await parseError(response))
+  }
 }

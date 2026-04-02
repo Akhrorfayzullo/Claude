@@ -41,7 +41,9 @@
   "projects": {
     "eyebrow": "Tanlangan ishlar",
     "title": "Mahsulot va interfeys dizayniga yondashuvimni aks ettiruvchi bir nechta loyihalar.",
-    "empty": "Loyihalar admin sahifasidan qo'shilgandan so'ng bu yerda ko'rinadi."
+    "empty": "Loyihalar admin sahifasidan qo'shilgandan so'ng bu yerda ko'rinadi.",
+    "featuredLabel": "Tanlangan loyiha",
+    "openProject": "Loyihani ochish"
   },
   "contact": {
     "eyebrow": "Aloqa",
@@ -103,7 +105,25 @@
     "languageLabel": "Sayt standart tili",
     "saveLanguage": "Tilni saqlash",
     "languageSaved": "Standart til yangilandi.",
-    "languageSaving": "Saqlanmoqda..."
+    "languageSaving": "Saqlanmoqda...",
+    "contactSettings": "Aloqa",
+    "contactSettingsTitle": "Aloqa ma'lumotlari",
+    "contactEmail": "Email manzil",
+    "contactGithub": "GitHub URL",
+    "saveContact": "Aloqani saqlash",
+    "heroStats": "Asosiy statistika",
+    "heroStatsTitle": "Asosiy kartada ko'rsatiladigan raqamlar",
+    "heroYears": "Yillar (masalan: 3+)",
+    "heroBuilds": "Loyihalar (masalan: 12)",
+    "saveHeroStats": "Statistikani saqlash",
+    "skills": "Ko'nikmalar",
+    "addSkill": "Ko'nikma qo'shish",
+    "editSkill": "Ko'nikmani tahrirlash",
+    "skillName": "Ko'nikma nomi",
+    "skillCategory": "Kategoriya",
+    "createSkill": "Ko'nikma qo'shish",
+    "updateSkill": "Ko'nikmani yangilash",
+    "projectImage": "Loyiha tasviri (PNG, JPG, WEBP — ixtiyoriy)"
   },
   "login": {
     "title": "Admin Kirish",
