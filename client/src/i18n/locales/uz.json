@@ -3,6 +3,7 @@
     "about": "Haqida",
     "skills": "Ko'nikmalar",
     "projects": "Loyihalar",
+    "resume": "Rezyume",
     "contact": "Aloqa",
     "admin": "Admin",
     "backToSite": "Saytga qaytish"
@@ -44,6 +45,12 @@
     "empty": "Loyihalar admin sahifasidan qo'shilgandan so'ng bu yerda ko'rinadi.",
     "featuredLabel": "Tanlangan loyiha",
     "openProject": "Loyihani ochish"
+  },
+  "resume": {
+    "eyebrow": "Mening rezyumem",
+    "title": "Rezyume",
+    "download": "Rezyumeni yuklab olish",
+    "empty": "Rezyume admin sahifasidan yuklanganidan so'ng bu yerda ko'rinadi."
   },
   "contact": {
     "eyebrow": "Aloqa",

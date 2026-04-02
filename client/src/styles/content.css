@@ -355,6 +355,33 @@
   height: 16px;
 }
 
+/* ── Resume section ───────────────────────────────────────────────────────── */
+
+.resume-wrapper {
+  display: grid;
+  gap: 28px;
+}
+
+.resume-embed-container {
+  padding: 0;
+  overflow: hidden;
+  border-radius: 20px;
+}
+
+.resume-embed {
+  width: 100%;
+  height: 720px;
+  border: none;
+  display: block;
+}
+
+.resume-actions {
+  display: flex;
+  justify-content: center;
+}
+
+/* ── Admin page ───────────────────────────────────────────────────────────── */
+
 .admin-page {
   position: relative;
   z-index: 1;

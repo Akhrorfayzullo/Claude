@@ -3,6 +3,7 @@
     "about": "소개",
     "skills": "기술",
     "projects": "프로젝트",
+    "resume": "이력서",
     "contact": "연락",
     "admin": "관리자",
     "backToSite": "사이트로 돌아가기"
@@ -44,6 +45,12 @@
     "empty": "관리자 페이지에서 프로젝트를 추가하면 여기에 표시됩니다.",
     "featuredLabel": "주요 프로젝트",
     "openProject": "프로젝트 열기"
+  },
+  "resume": {
+    "eyebrow": "내 이력서",
+    "title": "이력서",
+    "download": "이력서 다운로드",
+    "empty": "관리자 페이지에서 업로드하면 이력서가 여기에 표시됩니다."
   },
   "contact": {
     "eyebrow": "연락",

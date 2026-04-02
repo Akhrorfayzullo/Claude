@@ -50,6 +50,7 @@ function Navbar({
     { href: '#about', label: t('nav.about') },
     { href: '#skills', label: t('nav.skills') },
     { href: '#projects', label: t('nav.projects') },
+    { href: '#resume', label: t('nav.resume') },
     { href: '#contact', label: t('nav.contact') },
   ]
 

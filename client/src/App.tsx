@@ -9,6 +9,7 @@ import Hero from './components/Hero'
 import LoginPage from './components/LoginPage'
 import Navbar from './components/Navbar'
 import Projects from './components/Projects'
+import ResumeSection from './components/ResumeSection'
 import Skills from './components/Skills'
 import { projects as fallbackProjects } from './data/projects.ts'
 import { skills as fallbackSkills } from './data/skills.ts'
@@ -185,6 +186,7 @@ function App() {
             <About />
             <Skills skills={skills} />
             <Projects projects={projects} />
+            <ResumeSection resume={resume} />
             <Contact email={contactSettings.email} github={contactSettings.github} />
           </main>
         )}

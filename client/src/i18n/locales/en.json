@@ -3,6 +3,7 @@
     "about": "About",
     "skills": "Skills",
     "projects": "Projects",
+    "resume": "Resume",
     "contact": "Contact",
     "admin": "Admin",
     "backToSite": "Back to site"
@@ -44,6 +45,12 @@
     "empty": "Projects will appear here once they are added from the admin page.",
     "featuredLabel": "Featured Project",
     "openProject": "Open project"
+  },
+  "resume": {
+    "eyebrow": "My Resume",
+    "title": "Resume",
+    "download": "Download Resume",
+    "empty": "Resume will appear here once it is uploaded from the admin page."
   },
   "contact": {
     "eyebrow": "Contact",
