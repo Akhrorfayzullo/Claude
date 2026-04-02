@@ -33,13 +33,15 @@ function ProjectCard({ project }: ProjectCardProps) {
         </div>
 
         <div className="project-card-footer">
-          <ul className="chip-list">
-            {project.tags.map((tag) => (
-              <li key={tag} className="chip">
-                {tag}
-              </li>
-            ))}
-          </ul>
+          <div className="project-tags-wrap">
+            <ul className="chip-list">
+              {project.tags.map((tag) => (
+                <li key={tag} className="chip">
+                  {tag}
+                </li>
+              ))}
+            </ul>
+          </div>
 
           <span className="project-card-arrow" aria-hidden="true">↗</span>
         </div>

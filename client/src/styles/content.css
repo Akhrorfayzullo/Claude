@@ -184,6 +184,18 @@
   line-height: 1.6;
   max-height: 120px;
   overflow-y: auto;
+  scrollbar-width: none;
+}
+
+.project-description::-webkit-scrollbar {
+  display: none;
+}
+
+.project-tags-wrap {
+  overflow: hidden;
+  max-height: 80px;
+  flex: 1;
+  min-width: 0;
 }
 
 /* Footer row: chips + arrow */
