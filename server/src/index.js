@@ -102,6 +102,16 @@ app.use(express.json())
 app.use(pinoHttp({ logger }))
 
 // ── Static client files ────────────────────────────────────────────────────
+app.get('/assets/*.js', (req, res, next) => {
+  const filePath = path.join(clientDistPath, req.path)
+  console.log('JS request:', req.path, '→', filePath)
+  res.sendFile(filePath, (err) => {
+    if (err) {
+      console.error('JS file error:', err.message, err.code)
+      next(err)
+    }
+  })
+})
 app.use(express.static(clientDistPath))
 app.get(/^(?!\/api).*/, (_request, response) => {
   response.sendFile(path.join(clientDistPath, 'index.html'))
