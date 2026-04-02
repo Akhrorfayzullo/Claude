@@ -103,8 +103,9 @@ app.use(pinoHttp({ logger }))
 
 // ── Static client files ────────────────────────────────────────────────────
 app.use(express.static(clientDistPath))
-app.get(/^(?!\/api).*/, (_request, response) => {
-  response.sendFile(path.join(clientDistPath, 'index.html'))
+app.use((req, res, next) => {
+  if (req.path.startsWith('/api')) return next()
+  res.sendFile(path.join(clientDistPath, 'index.html'))
 })
 
 // ── Routes ─────────────────────────────────────────────────────────────────
