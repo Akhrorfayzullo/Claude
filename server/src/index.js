@@ -35,6 +35,7 @@ const __dirname = path.dirname(__filename)
 const require = createRequire(import.meta.url)
 const serverRoot = path.resolve(__dirname, '..')
 const clientDistPath = path.resolve(serverRoot, '..', 'client', 'dist')
+console.log('clientDistPath:', clientDistPath)
 const uploadsDirectory = path.resolve(serverRoot, 'uploads', 'resumes')
 const brandingDirectory = path.resolve(serverRoot, 'uploads', 'branding')
 const projectsUploadsDirectory = path.resolve(serverRoot, 'uploads', 'projects')
@@ -152,6 +153,10 @@ async function start() {
   await connectToDatabase(process.env.MONGODB_URI)
   await seedAdminUser()
 
+  app.use((req, res, next) => {
+    console.log('Request:', req.method, req.url)
+    next()
+  })
   app.use(express.static(clientDistPath))
   app.get(/^(?!\/api).*/, (_request, response) => {
     response.sendFile(path.join(clientDistPath, 'index.html'))
