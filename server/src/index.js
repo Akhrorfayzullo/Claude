@@ -42,6 +42,10 @@ const projectsUploadsDirectory = path.resolve(serverRoot, 'uploads', 'projects')
 const app = express()
 const port = Number(process.env.PORT || 4000)
 const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173'
+// Additional origins always allowed (Render subdomain as fallback)
+const allowedOrigins = new Set(
+  [clientUrl, process.env.RENDER_EXTERNAL_URL].filter(Boolean)
+)
 const isProduction = process.env.NODE_ENV === 'production'
 const localhostOriginPattern = /^http:\/\/(localhost|127\.0\.0\.1):\d+$/
 const hasPrettyLogger = (() => {
@@ -84,7 +88,7 @@ app.use(
         return
       }
 
-      const isConfiguredOrigin = origin === clientUrl
+      const isConfiguredOrigin = allowedOrigins.has(origin)
       const isLocalDevOrigin = !isProduction && localhostOriginPattern.test(origin)
 
       if (isConfiguredOrigin || isLocalDevOrigin) {
