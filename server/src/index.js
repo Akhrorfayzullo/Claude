@@ -102,19 +102,16 @@ app.use(express.json())
 app.use(pinoHttp({ logger }))
 
 // ── Static client files ────────────────────────────────────────────────────
+// Must come before API routes so built assets (.js, .css) are served with correct MIME types
 app.use(express.static(clientDistPath))
-app.use((req, res, next) => {
-  if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) return next()
-  res.sendFile(path.join(clientDistPath, 'index.html'))
-})
+
+// Serve uploaded project images publicly
+app.use('/uploads/projects', express.static(path.resolve(serverRoot, 'uploads', 'projects')))
 
 // ── Routes ─────────────────────────────────────────────────────────────────
 app.get('/api/health', (_request, response) => {
   response.json({ ok: true })
 })
-
-// Serve uploaded project images publicly
-app.use('/uploads/projects', express.static(path.resolve(serverRoot, 'uploads', 'projects')))
 
 app.use('/api/auth', authRoutes)
 app.use('/api/settings', settingsRoutes)
@@ -123,6 +120,16 @@ app.use('/api/skills', skillsRoutes)
 app.use('/api/resume', resumeRoutes)
 app.use('/api/profile-image', profileImageRoutes)
 app.use('/api/admin', adminRoutes)
+
+// ── SPA catch-all ──────────────────────────────────────────────────────────
+// Must come AFTER express.static and all API routes.
+// If a request has a file extension (.js, .css, .png) and was not served by
+// express.static, it means the file does not exist — return 404 instead of
+// index.html to prevent wrong MIME types (e.g. text/html for a .js request).
+app.use((req, res, next) => {
+  if (path.extname(req.path)) return next()
+  res.sendFile(path.join(clientDistPath, 'index.html'))
+})
 
 // ── Error handler ──────────────────────────────────────────────────────────
 app.use((error, _request, response, _next) => {

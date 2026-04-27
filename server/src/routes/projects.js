@@ -12,5 +12,6 @@ router.get('/', async (_request, response, next) => {
     next(error)
   }
 })
+// projects is an array of objects
 
 export default router
