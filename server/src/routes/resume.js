@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import fs from 'node:fs/promises'
 import path from 'node:path'
 import { Resume } from '../models/Resume.js'
 import { serializeResume } from '../utils/serializers.js'
@@ -34,6 +35,15 @@ router.get('/file', async (request, response, next) => {
     }
 
     const resolvedPath = path.resolve(resume.filePath)
+
+    // File exists in MongoDB but may have been wiped from disk (e.g. server restart on Render)
+    try {
+      await fs.access(resolvedPath)
+    } catch {
+      response.status(404).json({ message: 'Resume file not found on server.' })
+      return
+    }
+
     const shouldDownload = request.query.download === '1'
 
     if (shouldDownload) {
