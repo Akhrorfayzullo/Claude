@@ -2,6 +2,7 @@ import type { CSSProperties, PointerEvent as ReactPointerEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import resumeFallback from '../assets/resume.pdf'
 import DocumentIcon from './DocumentIcon.tsx'
+import HeroTerminal from './HeroTerminal.tsx'
 
 type HeroProps = {
   theme: 'dark' | 'light'
@@ -54,6 +55,23 @@ function Hero({ theme, resumeUrl, years = '3+', builds = '12' }: HeroProps) {
         <h1>{t('hero.title')}</h1>
         <p className="hero-text">{t('hero.description')}</p>
 
+        <div className="hero-stats-strip">
+          <div className="hero-stat">
+            <span className="hero-stat-number">{years}</span>
+            <span className="hero-stat-label">Years exp.</span>
+          </div>
+          <div className="hero-stat-divider" />
+          <div className="hero-stat">
+            <span className="hero-stat-number">{builds}</span>
+            <span className="hero-stat-label">Projects shipped</span>
+          </div>
+          <div className="hero-stat-divider" />
+          <div className="hero-stat">
+            <span className="hero-stat-number">Full</span>
+            <span className="hero-stat-label">Stack</span>
+          </div>
+        </div>
+
         <div className="hero-actions">
           <a className="button button-primary" href="#projects">
             {t('hero.seeProjects')}
@@ -103,38 +121,30 @@ function Hero({ theme, resumeUrl, years = '3+', builds = '12' }: HeroProps) {
 
           <div className="hero-centerpiece">
             <div className="hero-center-halo" />
-            <div className="hero-center-core">
-              <span></span>
-            </div>
+            <HeroTerminal />
           </div>
 
           <div className="hero-float hero-float-top">
-            <p className="hero-float-label">
-              {theme === 'light' ? t('hero.solarMode') : t('hero.nightMode')}
-            </p>
-            <strong>{t('hero.animatedUI')}</strong>
-          </div>
-
-          <div className="hero-float hero-float-bottom">
-            <p className="hero-float-label">{t('hero.buildStack')}</p>
-            <div className="hero-chip-row">
-              {stackBadges.map((badge) => (
-                <span key={badge} className="hero-chip">
-                  {badge}
-                </span>
-              ))}
+            <div className="hero-float-dot" />
+            <div>
+              <p className="hero-float-label">{t('hero.buildStack')}</p>
+              <div className="hero-chip-row">
+                {stackBadges.map((badge) => (
+                  <span key={badge} className="hero-chip">
+                    {badge}
+                  </span>
+                ))}
+              </div>
             </div>
           </div>
 
-          <div className="hero-side-card hero-side-card-left">
-            <span className="hero-side-number">{years}</span>
-            <p>{t('hero.yearsDesc')}</p>
+          <div className="hero-float hero-float-bottom">
+            <div className="hero-float-status">
+              <span className="hero-float-status-dot" />
+              <span className="hero-float-status-text">Available for work</span>
+            </div>
           </div>
 
-          <div className="hero-side-card hero-side-card-right">
-            <span className="hero-side-number">{builds}</span>
-            <p>{t('hero.buildsDesc')}</p>
-          </div>
         </div>
       </div>
     </section>

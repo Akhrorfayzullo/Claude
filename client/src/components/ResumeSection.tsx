@@ -1,5 +1,6 @@
 import { useTranslation } from 'react-i18next'
 import { toAbsoluteApiUrl } from '../lib/api.ts'
+import { trackEvent } from '../lib/track.ts'
 import type { ResumeSummary } from '../types/resume.types.ts'
 import ScrollReveal from './ScrollReveal.tsx'
 import SectionTitle from './SectionTitle.tsx'
@@ -15,7 +16,7 @@ function ResumeSection({ resume }: ResumeSectionProps) {
 
   return (
     <section id="resume" className="section shell">
-      <ScrollReveal>
+      <ScrollReveal variant="up">
         <SectionTitle eyebrow={t('resume.eyebrow')} title={t('resume.title')} />
 
         {viewUrl && downloadUrl ? (
@@ -28,7 +29,12 @@ function ResumeSection({ resume }: ResumeSectionProps) {
               />
             </div>
             <div className="resume-actions">
-              <a href={downloadUrl} download className="button button-primary">
+              <a
+                href={downloadUrl}
+                download
+                className="button button-primary"
+                onClick={() => trackEvent('resume_download')}
+              >
                 {t('resume.download')}
               </a>
             </div>

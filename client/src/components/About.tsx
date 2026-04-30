@@ -13,7 +13,7 @@ function About() {
 
   return (
     <section id="about" className="section shell">
-      <ScrollReveal>
+      <ScrollReveal variant="up">
         <SectionTitle eyebrow={t('about.eyebrow')} title={t('about.title')} />
 
         <div className="about-layout">

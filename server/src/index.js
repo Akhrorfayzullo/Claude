@@ -18,6 +18,7 @@ import profileImageRoutes from './routes/profile-image.js'
 import projectsRoutes from './routes/projects.js'
 import resumeRoutes from './routes/resume.js'
 import skillsRoutes from './routes/skills.js'
+import trackRoutes from './routes/track.js'
 import { connectToDatabase } from './db/connect.js'
 import { AdminUser } from './models/AdminUser.js'
 
@@ -124,6 +125,7 @@ app.use('/api/skills', skillsRoutes)
 app.use('/api/resume', resumeRoutes)
 app.use('/api/profile-image', profileImageRoutes)
 app.use('/api/admin', adminRoutes)
+app.use('/api/track', trackRoutes)
 
 // ── SPA catch-all ──────────────────────────────────────────────────────────
 // Must come AFTER express.static and all API routes.
