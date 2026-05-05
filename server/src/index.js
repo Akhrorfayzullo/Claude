@@ -73,8 +73,9 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-        // Allow images served by this API server (cross-origin in dev)
+        // Allow Cloudinary for images and PDF resume iframe
         'img-src': ["'self'", 'data:', 'https://res.cloudinary.com', `http://localhost:${process.env.PORT || 4000}`],
+        'frame-src': ["'self'", 'https://res.cloudinary.com'],
         'font-src': ["'self'", 'data:'],
       },
     },

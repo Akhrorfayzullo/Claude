@@ -31,7 +31,8 @@ function ResumeSection({ resume }: ResumeSectionProps) {
             <div className="resume-actions">
               <a
                 href={downloadUrl}
-                download
+                target="_blank"
+                rel="noreferrer"
                 className="button button-primary"
                 onClick={() => trackEvent('resume_download')}
               >
