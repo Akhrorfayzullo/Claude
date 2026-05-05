@@ -74,7 +74,7 @@ app.use(
       directives: {
         ...helmet.contentSecurityPolicy.getDefaultDirectives(),
         // Allow images served by this API server (cross-origin in dev)
-        'img-src': ["'self'", 'data:', `http://localhost:${process.env.PORT || 4000}`],
+        'img-src': ["'self'", 'data:', 'https://res.cloudinary.com', `http://localhost:${process.env.PORT || 4000}`],
         'font-src': ["'self'", 'data:'],
       },
     },
