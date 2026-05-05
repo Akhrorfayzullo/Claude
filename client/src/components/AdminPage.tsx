@@ -691,10 +691,10 @@ function AdminPage({ onProfileImageChange, onLogout }: AdminPageProps) {
                           </div>
                           {resumeLinks ? (
                             <div className="admin-inline-actions">
-                              <a className="button button-secondary button-icon" href={resumeLinks.view} target="_blank" rel="noreferrer">
+                              <a className="button button-secondary button-icon" href={resumeLinks.view ?? undefined} target="_blank" rel="noreferrer">
                                 <DocumentIcon /><span>{t('admin.viewResume')}</span>
                               </a>
-                              <a className="button button-primary button-icon" href={resumeLinks.download}>
+                              <a className="button button-primary button-icon" href={resumeLinks.download ?? undefined}>
                                 <DocumentIcon /><span>{t('admin.downloadResume')}</span>
                               </a>
                             </div>
@@ -901,7 +901,7 @@ function AdminPage({ onProfileImageChange, onLogout }: AdminPageProps) {
                               <article key={project.id ?? project.title} className="project-card card admin-project-card">
                                 {project.imageUrl ? (
                                   <div className="project-card-image">
-                                    <img src={toAbsoluteApiUrl(project.imageUrl)} alt={project.title} loading="lazy" />
+                                    <img src={toAbsoluteApiUrl(project.imageUrl) ?? undefined} alt={project.title} loading="lazy" />
                                   </div>
                                 ) : null}
                                 <div className="project-card-top">
