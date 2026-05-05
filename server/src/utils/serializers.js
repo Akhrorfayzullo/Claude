@@ -19,8 +19,8 @@ export function serializeResume(resumeDocument) {
     mimeType: resumeDocument.mimeType,
     size: resumeDocument.size,
     updatedAt: resumeDocument.updatedAt,
-    viewUrl: resumeDocument.cloudinaryUrl ?? null,
-    downloadUrl: resumeDocument.cloudinaryUrl ?? null,
+    viewUrl: '/api/resume/view',
+    downloadUrl: '/api/resume/download',
   }
 }
 
