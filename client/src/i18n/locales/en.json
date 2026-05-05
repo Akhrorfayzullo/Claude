@@ -49,6 +49,7 @@
   "resume": {
     "eyebrow": "My Resume",
     "title": "Resume",
+    "view": "View Resume",
     "download": "Download Resume",
     "empty": "Resume will appear here once it is uploaded from the admin page."
   },

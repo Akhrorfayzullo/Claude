@@ -21,14 +21,16 @@ function ResumeSection({ resume }: ResumeSectionProps) {
 
         {viewUrl && downloadUrl ? (
           <div className="resume-wrapper">
-            <div className="resume-embed-container card">
-              <iframe
-                src={viewUrl}
-                className="resume-embed"
-                title={t('resume.title')}
-              />
-            </div>
             <div className="resume-actions">
+              <a
+                href={viewUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="button button-secondary"
+                onClick={() => trackEvent('resume_view')}
+              >
+                {t('resume.view')}
+              </a>
               <a
                 href={downloadUrl}
                 target="_blank"

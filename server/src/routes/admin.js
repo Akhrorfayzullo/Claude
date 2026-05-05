@@ -206,7 +206,7 @@ router.post('/resume', resumeUpload.single('resume'), async (request, response, 
 
     const result = await uploadBuffer(request.file.buffer, {
       folder: 'portfolio/resumes',
-      resource_type: 'raw',
+      resource_type: 'image',
       public_id: `resume-${Date.now()}`,
       format: 'pdf',
     })
@@ -221,7 +221,7 @@ router.post('/resume', resumeUpload.single('resume'), async (request, response, 
 
     // Delete old resume from Cloudinary after new one is saved
     if (previousResume?.cloudinaryPublicId) {
-      await cloudinary.uploader.destroy(previousResume.cloudinaryPublicId, { resource_type: 'raw' }).catch(() => {})
+      await cloudinary.uploader.destroy(previousResume.cloudinaryPublicId, { resource_type: 'image' }).catch(() => {})
       await Resume.findByIdAndDelete(previousResume._id)
     }
 
