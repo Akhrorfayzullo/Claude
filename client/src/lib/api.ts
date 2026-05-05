@@ -176,7 +176,8 @@ export async function uploadProfileImage(file: File) {
   })
 }
 
-export function toAbsoluteApiUrl(path: string) {
+export function toAbsoluteApiUrl(path: string | null | undefined): string | null {
+  if (!path) return null
   if (/^https?:\/\//.test(path) || !path.startsWith('/')) {
     return path
   }
