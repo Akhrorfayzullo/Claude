@@ -7,11 +7,6 @@ const profileImageSchema = new mongoose.Schema(
       required: true,
       trim: true,
     },
-    storedName: {
-      type: String,
-      required: true,
-      trim: true,
-    },
     mimeType: {
       type: String,
       required: true,
@@ -21,7 +16,12 @@ const profileImageSchema = new mongoose.Schema(
       type: Number,
       required: true,
     },
-    filePath: {
+    cloudinaryUrl: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    cloudinaryPublicId: {
       type: String,
       required: true,
       trim: true,

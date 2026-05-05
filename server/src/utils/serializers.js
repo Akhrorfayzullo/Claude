@@ -1,17 +1,14 @@
 export function serializeProject(projectDocument) {
   return {
-    // MongoDB stores _id as an ObjectId object — convert to string for the frontend
     id: projectDocument._id.toString(),
     title: projectDocument.title,
     description: projectDocument.description,
     href: projectDocument.href,
     tags: projectDocument.tags,
     sortOrder: projectDocument.sortOrder,
-    // ?? null: if imageUrl is undefined or null, send null explicitly
     imageUrl: projectDocument.imageUrl ?? null,
     createdAt: projectDocument.createdAt,
     updatedAt: projectDocument.updatedAt,
-    // imagePath intentionally excluded — it's the server's internal file path, not safe to expose
   }
 }
 
@@ -22,8 +19,8 @@ export function serializeResume(resumeDocument) {
     mimeType: resumeDocument.mimeType,
     size: resumeDocument.size,
     updatedAt: resumeDocument.updatedAt,
-    viewUrl: '/api/resume/file',
-    downloadUrl: '/api/resume/file?download=1',
+    viewUrl: resumeDocument.cloudinaryUrl ?? null,
+    downloadUrl: resumeDocument.cloudinaryUrl ?? null,
   }
 }
 
@@ -34,7 +31,7 @@ export function serializeProfileImage(profileImageDocument) {
     mimeType: profileImageDocument.mimeType,
     size: profileImageDocument.size,
     updatedAt: profileImageDocument.updatedAt,
-    viewUrl: '/api/profile-image/file',
+    viewUrl: profileImageDocument.cloudinaryUrl ?? null,
   }
 }
 
