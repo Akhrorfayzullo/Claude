@@ -43,6 +43,7 @@ function Navbar({
   const [menuOpen, setMenuOpen] = useState(false)
   const [langOpen, setLangOpen] = useState(false)
   const langRef = useRef<HTMLDivElement>(null)
+  const navRef = useRef<HTMLElement>(null)
 
   const currentLang = SUPPORTED_LANGUAGES.find((l) => l.code === i18n.language) ?? SUPPORTED_LANGUAGES[0]
 
@@ -56,11 +57,14 @@ function Navbar({
 
   const links = isAdminView ? [{ href: '/', label: t('nav.backToSite') }] : navItems
 
-  // Close dropdown when clicking outside
+  // Close dropdowns/menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (langRef.current && !langRef.current.contains(e.target as Node)) {
         setLangOpen(false)
+      }
+      if (navRef.current && !navRef.current.contains(e.target as Node)) {
+        setMenuOpen(false)
       }
     }
     document.addEventListener('mousedown', handleClickOutside)
@@ -74,7 +78,7 @@ function Navbar({
 
   return (
     <header className={`site-header ${isScrolled ? 'site-header-scrolled' : ''}`}>
-      <nav className="nav shell" aria-label="Primary">
+      <nav className="nav shell" aria-label="Primary" ref={navRef}>
         <a className="brand" href={isAdminView ? '/' : '#hero'}>
           <span className="brand-mark">
             {profileImageUrl ? (

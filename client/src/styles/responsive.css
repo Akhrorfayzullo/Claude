@@ -345,7 +345,6 @@
   }
 
   .hero {
-    padding-top: 28px;
     gap: 24px;
   }
 
@@ -392,9 +391,12 @@
   }
 
   /* Section spacing */
-  .hero,
   .section {
     padding: 44px 0;
+  }
+
+  .hero {
+    padding: 32px 0 8px; /* visual hidden on phones — keep hero compact */
   }
 
   /* Cards */
