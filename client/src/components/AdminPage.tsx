@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useReducer, useState, type FormEvent } from 'react'
+import { useEffect, useMemo, useReducer, useRef, useState, type FormEvent } from 'react'
 import { useTranslation } from 'react-i18next'
 import {
   createProject,
@@ -394,6 +394,7 @@ function AdminPage({ onProfileImageChange, onLogout }: AdminPageProps) {
   const { t, i18n } = useTranslation()
   const [state, dispatch] = useReducer(adminReducer, initialState)
   const [openSection, setOpenSection] = useState<string | null>(null)
+  const projectFormRef = useRef<HTMLFormElement>(null)
 
   const toggleSection = (id: string) =>
     setOpenSection((prev) => (prev === id ? null : id))
@@ -449,6 +450,13 @@ function AdminPage({ onProfileImageChange, onLogout }: AdminPageProps) {
     void load()
     return () => { isMounted = false }
   }, [])
+
+  // Scroll project form into view when editing starts
+  useEffect(() => {
+    if (editingProjectId && projectFormRef.current) {
+      projectFormRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }, [editingProjectId])
 
   const resumeLinks = useMemo(() => {
     if (!resume) return null
@@ -683,10 +691,10 @@ function AdminPage({ onProfileImageChange, onLogout }: AdminPageProps) {
                           </div>
                           {resumeLinks ? (
                             <div className="admin-inline-actions">
-                              <a className="button button-secondary button-icon" href={resumeLinks.view} target="_blank" rel="noreferrer">
+                              <a className="button button-secondary button-icon" href={resumeLinks.view ?? undefined} target="_blank" rel="noreferrer">
                                 <DocumentIcon /><span>{t('admin.viewResume')}</span>
                               </a>
-                              <a className="button button-primary button-icon" href={resumeLinks.download}>
+                              <a className="button button-primary button-icon" href={resumeLinks.download ?? undefined}>
                                 <DocumentIcon /><span>{t('admin.downloadResume')}</span>
                               </a>
                             </div>
@@ -820,7 +828,7 @@ function AdminPage({ onProfileImageChange, onLogout }: AdminPageProps) {
                   {/* ── Projects ─────────────────────────────── */}
                   {id === 'projects' && (
                     <div className="admin-form">
-                      <form className="admin-form" onSubmit={handleProjectSubmit}>
+                      <form className="admin-form" ref={projectFormRef} onSubmit={handleProjectSubmit}>
                         <label className="field">
                           <span>{t('admin.projectTitle')}</span>
                           <input type="text" value={projectForm.title} placeholder="Modern dashboard platform"
@@ -893,7 +901,7 @@ function AdminPage({ onProfileImageChange, onLogout }: AdminPageProps) {
                               <article key={project.id ?? project.title} className="project-card card admin-project-card">
                                 {project.imageUrl ? (
                                   <div className="project-card-image">
-                                    <img src={toAbsoluteApiUrl(project.imageUrl)} alt={project.title} loading="lazy" />
+                                    <img src={toAbsoluteApiUrl(project.imageUrl) ?? undefined} alt={project.title} loading="lazy" />
                                   </div>
                                 ) : null}
                                 <div className="project-card-top">

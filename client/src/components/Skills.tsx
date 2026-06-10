@@ -25,7 +25,7 @@ function Skills({ skills }: SkillsProps) {
 
   return (
     <section id="skills" className="section shell">
-      <ScrollReveal>
+      <ScrollReveal variant="up">
         <SectionTitle eyebrow={t('skills.eyebrow')} title={t('skills.title')} />
 
         <div className="skills-grid">

@@ -18,6 +18,7 @@ import profileImageRoutes from './routes/profile-image.js'
 import projectsRoutes from './routes/projects.js'
 import resumeRoutes from './routes/resume.js'
 import skillsRoutes from './routes/skills.js'
+import trackRoutes from './routes/track.js'
 import { connectToDatabase } from './db/connect.js'
 import { AdminUser } from './models/AdminUser.js'
 
@@ -42,6 +43,10 @@ const projectsUploadsDirectory = path.resolve(serverRoot, 'uploads', 'projects')
 const app = express()
 const port = Number(process.env.PORT || 4000)
 const clientUrl = process.env.CLIENT_URL || 'http://localhost:5173'
+// Additional origins always allowed (Render subdomain as fallback)
+const allowedOrigins = new Set(
+  [clientUrl, process.env.RENDER_EXTERNAL_URL].filter(Boolean)
+)
 const isProduction = process.env.NODE_ENV === 'production'
 const localhostOriginPattern = /^http:\/\/(localhost|127\.0\.0\.1):\d+$/
 const hasPrettyLogger = (() => {
@@ -68,8 +73,9 @@ app.use(
     contentSecurityPolicy: {
       directives: {
         ...helmet.contentSecurityPolicy.getDefaultDirectives(),
-        // Allow images served by this API server (cross-origin in dev)
-        'img-src': ["'self'", 'data:', `http://localhost:${process.env.PORT || 4000}`],
+        // Allow Cloudinary for images and PDF resume iframe
+        'img-src': ["'self'", 'data:', 'https://res.cloudinary.com', `http://localhost:${process.env.PORT || 4000}`],
+        'frame-src': ["'self'", 'https://res.cloudinary.com'],
         'font-src': ["'self'", 'data:'],
       },
     },
@@ -84,7 +90,7 @@ app.use(
         return
       }
 
-      const isConfiguredOrigin = origin === clientUrl
+      const isConfiguredOrigin = allowedOrigins.has(origin)
       const isLocalDevOrigin = !isProduction && localhostOriginPattern.test(origin)
 
       if (isConfiguredOrigin || isLocalDevOrigin) {
@@ -102,19 +108,16 @@ app.use(express.json())
 app.use(pinoHttp({ logger }))
 
 // ── Static client files ────────────────────────────────────────────────────
+// Must come before API routes so built assets (.js, .css) are served with correct MIME types
 app.use(express.static(clientDistPath))
-app.use((req, res, next) => {
-  if (req.path.startsWith('/api') || req.path.startsWith('/uploads')) return next()
-  res.sendFile(path.join(clientDistPath, 'index.html'))
-})
+
+// Serve uploaded project images publicly
+app.use('/uploads/projects', express.static(path.resolve(serverRoot, 'uploads', 'projects')))
 
 // ── Routes ─────────────────────────────────────────────────────────────────
 app.get('/api/health', (_request, response) => {
   response.json({ ok: true })
 })
-
-// Serve uploaded project images publicly
-app.use('/uploads/projects', express.static(path.resolve(serverRoot, 'uploads', 'projects')))
 
 app.use('/api/auth', authRoutes)
 app.use('/api/settings', settingsRoutes)
@@ -123,6 +126,17 @@ app.use('/api/skills', skillsRoutes)
 app.use('/api/resume', resumeRoutes)
 app.use('/api/profile-image', profileImageRoutes)
 app.use('/api/admin', adminRoutes)
+app.use('/api/track', trackRoutes)
+
+// ── SPA catch-all ──────────────────────────────────────────────────────────
+// Must come AFTER express.static and all API routes.
+// If a request has a file extension (.js, .css, .png) and was not served by
+// express.static, it means the file does not exist — return 404 instead of
+// index.html to prevent wrong MIME types (e.g. text/html for a .js request).
+app.use((req, res, next) => {
+  if (path.extname(req.path)) return next()
+  res.sendFile(path.join(clientDistPath, 'index.html'))
+})
 
 // ── Error handler ──────────────────────────────────────────────────────────
 app.use((error, _request, response, _next) => {

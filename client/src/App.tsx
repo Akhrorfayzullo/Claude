@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { I18nextProvider } from 'react-i18next'
 import About from './components/About'
+import TechTicker from './components/TechTicker'
 import AdminPage from './components/AdminPage'
 import BackgroundEffect from './components/BackgroundEffect'
 import Contact from './components/Contact'
@@ -28,6 +29,7 @@ import {
   type ContactSettings,
   type HeroStats,
 } from './lib/api.ts'
+import { trackEvent } from './lib/track.ts'
 import type { ProfileImageSummary } from './types/profile-image.types.ts'
 import type { Project } from './types/project.types.ts'
 import type { ResumeSummary } from './types/resume.types.ts'
@@ -65,6 +67,13 @@ function App() {
     root.dataset.theme = theme
     window.localStorage.setItem('portfolio-theme', theme)
   }, [theme])
+
+  // Track page visits (only on public site, not admin panel)
+  useEffect(() => {
+    if (!isAdminView) {
+      trackEvent('page_visit')
+    }
+  }, [isAdminView])
 
   useEffect(() => {
     const root = document.documentElement
@@ -177,7 +186,6 @@ function App() {
           profileImageUrl={profileImageUrl}
           onToggleTheme={() => setTheme((current) => (current === 'dark' ? 'light' : 'dark'))}
         />
-
         {isAdminView ? (
           renderAdminContent()
         ) : (
@@ -185,6 +193,9 @@ function App() {
             <Hero theme={theme} resumeUrl={resumeUrl} years={heroStats.years} builds={heroStats.builds} />
             <About />
             <Skills skills={skills} />
+            <div className="ticker-strip">
+              <TechTicker />
+            </div>
             <Projects projects={projects} />
             <ResumeSection resume={resume} />
             <Contact email={contactSettings.email} github={contactSettings.github} />

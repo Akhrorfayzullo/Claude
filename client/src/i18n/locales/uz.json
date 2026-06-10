@@ -49,6 +49,7 @@
   "resume": {
     "eyebrow": "Mening rezyumem",
     "title": "Rezyume",
+    "view": "Rezyumeni ko'rish",
     "download": "Rezyumeni yuklab olish",
     "empty": "Rezyume admin sahifasidan yuklanganidan so'ng bu yerda ko'rinadi."
   },
@@ -58,6 +59,7 @@
     "lead": "Men full stack mahsulotlar, frontend-og'ir qurishlar va yaxshi muhandislik hamda kuchli vizual natija talab qiladigan UI-ga yo'naltirilgan hamkorlikga qiziqaman.",
     "startConversation": "Suhbatni boshlash",
     "email": "Email",
+    "phone": "Telefon",
     "github": "GitHub",
     "location": "Seulda joylashgan",
     "availability": "Masofaviy hamkorlik uchun mavjud"

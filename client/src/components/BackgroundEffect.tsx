@@ -21,9 +21,12 @@ function BackgroundEffect({ theme }: BackgroundEffectProps) {
     <div aria-hidden="true" className={`background-effect background-effect-${theme}`}>
       <div className="background-cursor-glow" />
       <div className="background-grid" />
+      <div className="background-mesh" />
       <div className="background-ambient background-ambient-one" />
       <div className="background-ambient background-ambient-two" />
       <div className="background-ambient background-ambient-three" />
+      <div className="background-ambient background-ambient-four" />
+      <div className="background-ambient background-ambient-five" />
       <div className="background-ring" />
       <div className="background-particles">
         {backgroundParticles.map((particle, index) => (

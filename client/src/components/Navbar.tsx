@@ -83,7 +83,7 @@ function Navbar({
               ownerName.charAt(0).toUpperCase()
             )}
           </span>
-          <span>{ownerName}</span>
+          <span className="brand-name">{ownerName}</span>
         </a>
 
         <button

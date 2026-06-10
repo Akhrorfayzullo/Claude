@@ -2,6 +2,9 @@ import { useTranslation } from 'react-i18next'
 import SectionTitle from './SectionTitle.tsx'
 import ScrollReveal from './ScrollReveal.tsx'
 
+const PHONE = '+821066082312'
+const PHONE_DISPLAY = '+82 10-6608-2312'
+
 type ContactProps = {
   email?: string
   github?: string
@@ -19,6 +22,11 @@ function Contact({ email = 'akhrorfayzullo@gmail.com', github = 'https://github.
       href: `mailto:${email}`,
     },
     {
+      label: t('contact.phone'),
+      value: PHONE_DISPLAY,
+      href: `tel:${PHONE}`,
+    },
+    {
       label: t('contact.github'),
       value: githubDisplay,
       href: github,
@@ -32,7 +40,7 @@ function Contact({ email = 'akhrorfayzullo@gmail.com', github = 'https://github.
 
   return (
     <section id="contact" className="section shell">
-      <ScrollReveal>
+      <ScrollReveal variant="up">
         <SectionTitle eyebrow={t('contact.eyebrow')} title={t('contact.title')} />
 
         <div className="contact-layout">

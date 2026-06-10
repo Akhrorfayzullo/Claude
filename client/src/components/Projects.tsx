@@ -13,7 +13,7 @@ function Projects({ projects }: ProjectsProps) {
 
   return (
     <section id="projects" className="section shell">
-      <ScrollReveal>
+      <ScrollReveal variant="scale">
         <SectionTitle eyebrow={t('projects.eyebrow')} title={t('projects.title')} />
 
         {projects.length > 0 ? (

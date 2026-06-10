@@ -1,5 +1,4 @@
 import { Router } from 'express'
-import fs from 'node:fs/promises'
 import path from 'node:path'
 import mongoose from 'mongoose'
 import multer from 'multer'
@@ -8,6 +7,7 @@ import { ProfileImage } from '../models/ProfileImage.js'
 import { Project } from '../models/Project.js'
 import { Resume } from '../models/Resume.js'
 import { Skill } from '../models/Skill.js'
+import { cloudinary, uploadBuffer } from '../utils/cloudinary.js'
 import {
   serializeProfileImage,
   serializeProject,
@@ -17,25 +17,9 @@ import {
 
 const router = Router()
 
-const resumesDirectory = path.resolve(process.cwd(), 'uploads', 'resumes')
-const brandingDirectory = path.resolve(process.cwd(), 'uploads', 'branding')
-const projectsDirectory = path.resolve(process.cwd(), 'uploads', 'projects')
-
-const projectImageUpload = multer({
-  storage: multer.diskStorage({
-    destination: (_request, _file, callback) => {
-      callback(null, projectsDirectory)
-    },
-    filename: (_request, file, callback) => {
-      const extension = path.extname(file.originalname) || '.jpg'
-      const safeBaseName = path
-        .basename(file.originalname, extension)
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '')
-      callback(null, `${Date.now()}-${safeBaseName || 'project'}${extension}`)
-    },
-  }),
+// All uploads go to memory — no temp files on disk
+const imageUpload = multer({
+  storage: multer.memoryStorage(),
   fileFilter: (_request, file, callback) => {
     const allowedMimeTypes = new Set(['image/png', 'image/jpeg', 'image/webp'])
     const extension = path.extname(file.originalname).toLowerCase()
@@ -46,71 +30,32 @@ const projectImageUpload = multer({
   limits: { fileSize: 5 * 1024 * 1024 },
 })
 
-const resumeUpload = multer({
-  storage: multer.diskStorage({
-    destination: (_request, _file, callback) => {
-      callback(null, resumesDirectory)
-    },
-    filename: (_request, file, callback) => {
-      const extension = path.extname(file.originalname) || '.pdf'
-      const safeBaseName = path
-        .basename(file.originalname, extension)
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '')
-
-      callback(null, `${Date.now()}-${safeBaseName || 'resume'}${extension}`)
-    },
-  }),
-  fileFilter: (_request, file, callback) => {
-    const isPdf = file.mimetype === 'application/pdf' || file.originalname.endsWith('.pdf')
-    callback(isPdf ? null : new Error('Only PDF resumes are supported.'), isPdf)
-  },
-  limits: {
-    fileSize: 8 * 1024 * 1024,
-  },
-})
-
 const profileImageUpload = multer({
-  storage: multer.diskStorage({
-    destination: (_request, _file, callback) => {
-      callback(null, brandingDirectory)
-    },
-    filename: (_request, file, callback) => {
-      const extension = path.extname(file.originalname) || '.png'
-      const safeBaseName = path
-        .basename(file.originalname, extension)
-        .toLowerCase()
-        .replace(/[^a-z0-9]+/g, '-')
-        .replace(/^-+|-+$/g, '')
-
-      callback(null, `${Date.now()}-${safeBaseName || 'profile-image'}${extension}`)
-    },
-  }),
+  storage: multer.memoryStorage(),
   fileFilter: (_request, file, callback) => {
     const allowedMimeTypes = new Set(['image/png', 'image/jpeg', 'image/webp', 'image/svg+xml'])
     const extension = path.extname(file.originalname).toLowerCase()
     const allowedExtensions = new Set(['.png', '.jpg', '.jpeg', '.webp', '.svg'])
     const isAccepted = allowedMimeTypes.has(file.mimetype) && allowedExtensions.has(extension)
-
     callback(isAccepted ? null : new Error('Only PNG, JPG, WEBP, or SVG images are supported.'), isAccepted)
   },
-  limits: {
-    fileSize: 5 * 1024 * 1024,
+  limits: { fileSize: 5 * 1024 * 1024 },
+})
+
+const resumeUpload = multer({
+  storage: multer.memoryStorage(),
+  fileFilter: (_request, file, callback) => {
+    const isPdf = file.mimetype === 'application/pdf' || file.originalname.endsWith('.pdf')
+    callback(isPdf ? null : new Error('Only PDF resumes are supported.'), isPdf)
   },
+  limits: { fileSize: 8 * 1024 * 1024 },
 })
 
 function normalizeTags(value) {
   if (Array.isArray(value)) {
-    return value
-      .map((tag) => `${tag}`.trim())
-      .filter(Boolean)
+    return value.map((tag) => `${tag}`.trim()).filter(Boolean)
   }
-
-  return `${value ?? ''}`
-    .split(',')
-    .map((tag) => tag.trim())
-    .filter(Boolean)
+  return `${value ?? ''}`.split(',').map((tag) => tag.trim()).filter(Boolean)
 }
 
 function isValidHref(href) {
@@ -137,15 +82,12 @@ function validateProjectPayload(payload) {
   if (!payload.title || !payload.description || !payload.href) {
     return 'Title, description, and link are required.'
   }
-
   if (!isValidHref(payload.href)) {
     return 'Link must be a valid URL (https://...) or a hash (#section).'
   }
-
   if (!Number.isFinite(payload.sortOrder)) {
     return 'Sort order must be a valid number.'
   }
-
   return null
 }
 
@@ -160,20 +102,25 @@ function requireValidObjectId(request, response, next) {
 
 router.use(requireAuth)
 
-router.post('/projects', projectImageUpload.single('projectImage'), async (request, response, next) => {
+// ── Projects ────────────────────────────────────────────────────────────────
+
+router.post('/projects', imageUpload.single('projectImage'), async (request, response, next) => {
   try {
     const payload = getProjectPayload(request.body)
     const validationError = validateProjectPayload(payload)
 
     if (validationError) {
-      if (request.file) await fs.rm(request.file.path, { force: true })
       response.status(400).json({ message: validationError })
       return
     }
 
     if (request.file) {
-      payload.imageUrl = `/uploads/projects/${request.file.filename}`
-      payload.imagePath = path.resolve(request.file.path)
+      const result = await uploadBuffer(request.file.buffer, {
+        folder: 'portfolio/projects',
+        resource_type: 'image',
+      })
+      payload.imageUrl = result.secure_url
+      payload.cloudinaryPublicId = result.public_id
     }
 
     const project = await Project.create(payload)
@@ -183,33 +130,37 @@ router.post('/projects', projectImageUpload.single('projectImage'), async (reque
   }
 })
 
-router.put('/projects/:projectId', requireValidObjectId, projectImageUpload.single('projectImage'), async (request, response, next) => {
+router.put('/projects/:projectId', requireValidObjectId, imageUpload.single('projectImage'), async (request, response, next) => {
   try {
     const payload = getProjectPayload(request.body)
     const validationError = validateProjectPayload(payload)
 
     if (validationError) {
-      if (request.file) await fs.rm(request.file.path, { force: true })
       response.status(400).json({ message: validationError })
       return
     }
 
     const existing = await Project.findById(request.params.projectId)
     if (!existing) {
-      if (request.file) await fs.rm(request.file.path, { force: true })
       response.status(404).json({ message: 'Project not found.' })
       return
     }
 
     if (request.file) {
-      // Delete old image if one existed
-      if (existing.imagePath) await fs.rm(existing.imagePath, { force: true })
-      payload.imageUrl = `/uploads/projects/${request.file.filename}`
-      payload.imagePath = path.resolve(request.file.path)
+      // Delete old image from Cloudinary if it exists
+      if (existing.cloudinaryPublicId) {
+        await cloudinary.uploader.destroy(existing.cloudinaryPublicId).catch(() => {})
+      }
+      const result = await uploadBuffer(request.file.buffer, {
+        folder: 'portfolio/projects',
+        resource_type: 'image',
+      })
+      payload.imageUrl = result.secure_url
+      payload.cloudinaryPublicId = result.public_id
     } else {
-      // Preserve existing image if no new one was uploaded
+      // Preserve existing image
       payload.imageUrl = existing.imageUrl ?? null
-      payload.imagePath = existing.imagePath ?? null
+      payload.cloudinaryPublicId = existing.cloudinaryPublicId ?? null
     }
 
     const project = await Project.findByIdAndUpdate(request.params.projectId, payload, {
@@ -232,8 +183,8 @@ router.delete('/projects/:projectId', requireValidObjectId, async (request, resp
       return
     }
 
-    if (deletedProject.imagePath) {
-      await fs.rm(deletedProject.imagePath, { force: true })
+    if (deletedProject.cloudinaryPublicId) {
+      await cloudinary.uploader.destroy(deletedProject.cloudinaryPublicId).catch(() => {})
     }
 
     response.status(204).send()
@@ -242,6 +193,8 @@ router.delete('/projects/:projectId', requireValidObjectId, async (request, resp
   }
 })
 
+// ── Resume ──────────────────────────────────────────────────────────────────
+
 router.post('/resume', resumeUpload.single('resume'), async (request, response, next) => {
   try {
     if (!request.file) {
@@ -249,21 +202,26 @@ router.post('/resume', resumeUpload.single('resume'), async (request, response, 
       return
     }
 
-    // Find old record before creating new one
     const previousResume = await Resume.findOne().sort({ updatedAt: -1, createdAt: -1 })
+
+    const result = await uploadBuffer(request.file.buffer, {
+      folder: 'portfolio/resumes',
+      resource_type: 'raw',
+      public_id: `resume-${Date.now()}`,
+    })
 
     const resume = await Resume.create({
       originalName: request.file.originalname,
-      storedName: request.file.filename,
       mimeType: request.file.mimetype,
       size: request.file.size,
-      filePath: path.resolve(request.file.path),
+      cloudinaryUrl: result.secure_url,
+      cloudinaryPublicId: result.public_id,
     })
 
-    // Delete old record and file after new one is safely created
-    if (previousResume) {
+    // Delete old resume from Cloudinary after new one is saved
+    if (previousResume?.cloudinaryPublicId) {
+      await cloudinary.uploader.destroy(previousResume.cloudinaryPublicId, { resource_type: 'raw' }).catch(() => {})
       await Resume.findByIdAndDelete(previousResume._id)
-      await fs.rm(previousResume.filePath, { force: true })
     }
 
     response.status(201).json(serializeResume(resume))
@@ -272,41 +230,44 @@ router.post('/resume', resumeUpload.single('resume'), async (request, response, 
   }
 })
 
-router.post(
-  '/profile-image',
-  profileImageUpload.single('profileImage'),
-  async (request, response, next) => {
-    try {
-      if (!request.file) {
-        response.status(400).json({ message: 'Please upload an image file.' })
-        return
-      }
+// ── Profile Image ────────────────────────────────────────────────────────────
 
-      // Find old record before creating new one
-      const previousProfileImage = await ProfileImage.findOne().sort({ updatedAt: -1, createdAt: -1 })
-
-      const profileImage = await ProfileImage.create({
-        originalName: request.file.originalname,
-        storedName: request.file.filename,
-        mimeType: request.file.mimetype,
-        size: request.file.size,
-        filePath: path.resolve(request.file.path),
-      })
-
-      // Delete old record and file after new one is safely created
-      if (previousProfileImage) {
-        await ProfileImage.findByIdAndDelete(previousProfileImage._id)
-        await fs.rm(previousProfileImage.filePath, { force: true })
-      }
-
-      response.status(201).json(serializeProfileImage(profileImage))
-    } catch (error) {
-      next(error)
+router.post('/profile-image', profileImageUpload.single('profileImage'), async (request, response, next) => {
+  try {
+    if (!request.file) {
+      response.status(400).json({ message: 'Please upload an image file.' })
+      return
     }
-  },
-)
 
-// ── Skills ─────────────────────────────────────────────────────────────────
+    const previousProfileImage = await ProfileImage.findOne().sort({ updatedAt: -1, createdAt: -1 })
+
+    const result = await uploadBuffer(request.file.buffer, {
+      folder: 'portfolio/branding',
+      resource_type: 'image',
+      public_id: `profile-${Date.now()}`,
+    })
+
+    const profileImage = await ProfileImage.create({
+      originalName: request.file.originalname,
+      mimeType: request.file.mimetype,
+      size: request.file.size,
+      cloudinaryUrl: result.secure_url,
+      cloudinaryPublicId: result.public_id,
+    })
+
+    // Delete old image from Cloudinary after new one is saved
+    if (previousProfileImage?.cloudinaryPublicId) {
+      await cloudinary.uploader.destroy(previousProfileImage.cloudinaryPublicId).catch(() => {})
+      await ProfileImage.findByIdAndDelete(previousProfileImage._id)
+    }
+
+    response.status(201).json(serializeProfileImage(profileImage))
+  } catch (error) {
+    next(error)
+  }
+})
+
+// ── Skills ───────────────────────────────────────────────────────────────────
 
 router.post('/skills', async (request, response, next) => {
   try {

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toAbsoluteApiUrl } from '../lib/api.ts'
+import { trackEvent } from '../lib/track.ts'
 import type { Project } from '../types/project.types.ts'
 
 type ProjectCardProps = {
@@ -14,27 +15,24 @@ function ProjectCard({ project }: ProjectCardProps) {
   const [imageError, setImageError] = useState(false)
 
   return (
-    <a
-      className="project-card card project-card-link"
-      href={project.href}
-      target={isExternalLink ? '_blank' : undefined}
-      rel={isExternalLink ? 'noreferrer' : undefined}
-      aria-label={`${project.title} — ${t('projects.openProject')}`}
-    >
-      {imageUrl && !imageError ? (
+    <article className="project-card card">
+      {imageUrl ? (
         <div className="project-card-image">
-          <img
-            src={imageUrl}
-            alt={project.title}
-            loading="lazy"
-            onError={() => setImageError(true)}
-          />
+          {!imageError ? (
+            <img
+              src={imageUrl}
+              alt={project.title}
+              loading="lazy"
+              onError={() => setImageError(true)}
+            />
+          ) : (
+            <div className="project-card-image-placeholder" />
+          )}
         </div>
       ) : null}
 
       <div className="project-card-body">
         <div className="project-card-top">
-          <p className="project-label">{t('projects.featuredLabel')}</p>
           <h3>{project.title}</h3>
           <p className="project-description">{project.description}</p>
         </div>
@@ -42,18 +40,32 @@ function ProjectCard({ project }: ProjectCardProps) {
         <div className="project-card-footer">
           <div className="project-tags-wrap">
             <ul className="chip-list">
-              {project.tags.map((tag) => (
+              {project.tags.slice(0, 4).map((tag) => (
                 <li key={tag} className="chip">
                   {tag}
                 </li>
               ))}
+              {project.tags.length > 4 && (
+                <li className="chip chip-more">+{project.tags.length - 4}</li>
+              )}
             </ul>
           </div>
 
-          <span className="project-card-arrow" aria-hidden="true">↗</span>
+          {project.href && (
+            <a
+              className="project-card-btn"
+              href={project.href}
+              target={isExternalLink ? '_blank' : undefined}
+              rel={isExternalLink ? 'noreferrer' : undefined}
+              aria-label={`${project.title} — ${t('projects.openProject')}`}
+              onClick={() => trackEvent('project_click', { title: project.title })}
+            >
+              {t('projects.openProject')} ↗
+            </a>
+          )}
         </div>
       </div>
-    </a>
+    </article>
   )
 }
 
