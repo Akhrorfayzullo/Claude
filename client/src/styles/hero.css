@@ -45,10 +45,10 @@
   font-size: clamp(3.4rem, 10vw, 6.8rem);
   background: linear-gradient(
     110deg,
-    #ffffff 0%,
-    #e2d9ff 30%,
-    #a78bfa 60%,
-    #ffffff 100%
+    var(--headline-a) 0%,
+    var(--headline-b) 30%,
+    var(--headline-c) 60%,
+    var(--headline-d) 100%
   );
   background-size: 200% auto;
   -webkit-background-clip: text;
@@ -91,7 +91,7 @@
   font-size: 1.6rem;
   font-weight: 800;
   line-height: 1;
-  background: linear-gradient(110deg, #fff 30%, #a78bfa 100%);
+  background: linear-gradient(110deg, var(--stat-a) 30%, var(--stat-b) 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;

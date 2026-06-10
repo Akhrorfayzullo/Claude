@@ -26,6 +26,13 @@ html[data-theme='dark'] {
   --button-contrast: #f7f3ee;
   --grid-line: rgba(130, 144, 255, 0.12);
   --shadow: 0 24px 80px rgba(0, 0, 0, 0.38);
+  /* gradient text stops — hero h1 + stat numbers */
+  --headline-a: #ffffff;
+  --headline-b: #e2d9ff;
+  --headline-c: #a78bfa;
+  --headline-d: #ffffff;
+  --stat-a: #ffffff;
+  --stat-b: #a78bfa;
 }
 
 html[data-theme='light'] {
@@ -43,6 +50,13 @@ html[data-theme='light'] {
   --button-contrast: #251c19;
   --grid-line: rgba(160, 120, 58, 0.12);
   --shadow: 0 26px 80px rgba(119, 91, 36, 0.14);
+  /* gradient text stops — dark ink with amber highlight for readability */
+  --headline-a: #241f23;
+  --headline-b: #4a3420;
+  --headline-c: #b45309;
+  --headline-d: #241f23;
+  --stat-a: #241f23;
+  --stat-b: #b45309;
 }
 
 * {
