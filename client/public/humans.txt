@@ -1,0 +1,12 @@
+/* TEAM */
+Developer: Akhrorbek Ibodullaev
+Site: https://akhrorbek.space
+Email: akhrorfayzullo@gmail.com
+GitHub: https://github.com/Akhrorfayzullo
+Location: Seoul, South Korea
+Languages: English, Korean, Uzbek
+
+/* SITE */
+Stack: React 19, TypeScript, Vite, Node.js, Express 5, MongoDB
+Hosting: Render
+Built: 2026
