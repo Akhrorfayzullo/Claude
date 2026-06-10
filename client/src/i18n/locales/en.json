@@ -15,15 +15,15 @@
   "hero": {
     "eyebrow": "Full Stack Developer / React / Node.js / TypeScript",
     "title": "I build full-stack web apps.",
-    "description": "AI writes code fast. I make sure the product actually makes sense. I am not better than AI, but I am better with it.",
+    "description": "AI moves fast. I make sure what ships actually makes sense.",
     "seeProjects": "See projects",
     "resume": "Resume",
     "solarMode": "SOLAR MODE",
     "nightMode": "NIGHT MODE",
-    "animatedUI": "Animated UI + solid backend architecture",
+    "animatedUI": "Dark UI — clean animations, real backend behind it.",
     "buildStack": "BUILD STACK",
     "yearsDesc": "Years building production-ready web products.",
-    "buildsDesc": "Selected builds across product, portfolio, and dashboard work."
+    "buildsDesc": "Projects shipped — products, portfolios, dashboards."
   },
   "about": {
     "eyebrow": "About Me",

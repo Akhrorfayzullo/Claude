@@ -121,8 +121,7 @@
 .project-card {
   display: flex;
   flex-direction: column;
-  height: 600px;
-  overflow: hidden;
+  min-height: 420px;
 }
 
 /* Clickable card variant */
@@ -174,7 +173,6 @@
 .project-card-top {
   display: grid;
   gap: 14px;
-  overflow: hidden;
 }
 
 .project-description {
@@ -182,18 +180,9 @@
   color: var(--muted);
   font-size: 0.93rem;
   line-height: 1.6;
-  max-height: 120px;
-  overflow-y: auto;
-  scrollbar-width: none;
-}
-
-.project-description::-webkit-scrollbar {
-  display: none;
 }
 
 .project-tags-wrap {
-  overflow: hidden;
-  max-height: 80px;
   flex: 1;
   min-width: 0;
 }

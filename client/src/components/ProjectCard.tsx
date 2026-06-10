@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { toAbsoluteApiUrl } from '../lib/api.ts'
 import type { Project } from '../types/project.types.ts'
@@ -10,6 +11,7 @@ function ProjectCard({ project }: ProjectCardProps) {
   const { t } = useTranslation()
   const isExternalLink = /^https?:\/\//.test(project.href)
   const imageUrl = project.imageUrl ? toAbsoluteApiUrl(project.imageUrl) : null
+  const [imageError, setImageError] = useState(false)
 
   return (
     <a
@@ -19,9 +21,14 @@ function ProjectCard({ project }: ProjectCardProps) {
       rel={isExternalLink ? 'noreferrer' : undefined}
       aria-label={`${project.title} — ${t('projects.openProject')}`}
     >
-      {imageUrl ? (
+      {imageUrl && !imageError ? (
         <div className="project-card-image">
-          <img src={imageUrl} alt={project.title} loading="lazy" />
+          <img
+            src={imageUrl}
+            alt={project.title}
+            loading="lazy"
+            onError={() => setImageError(true)}
+          />
         </div>
       ) : null}
 

@@ -15,15 +15,15 @@
   "hero": {
     "eyebrow": "Full Stack Dasturchi / React / Node.js / TypeScript",
     "title": "Men full-stack veb-ilovalar yarataman.",
-    "description": "AI kod yozishda tez. Men mahsulot haqiqatan ham mantiqli ekanligiga ishonch hosil qilaman. Men AI dan yaxshiroq emasman, lekin u bilan yaxshiroqman.",
+    "description": "AI tez harakat qiladi. Men chiqarilgan narsa haqiqatan ham mantiqli ekanligiga ishonch hosil qilaman.",
     "seeProjects": "Loyihalarni ko'rish",
     "resume": "Rezyume",
     "solarMode": "KUNDUZGI REJIM",
     "nightMode": "TUNGI REJIM",
-    "animatedUI": "Animatsiyali UI + mustahkam backend arxitekturasi",
+    "animatedUI": "Qorong'u UI — toza animatsiyalar, haqiqiy backend.",
     "buildStack": "TEXNOLOGIYALAR",
     "yearsDesc": "Ishlab chiqarish uchun tayyor veb mahsulotlar yaratgan yillar.",
-    "buildsDesc": "Mahsulot, portfolio va dashboard ishlarida tanlangan loyihalar."
+    "buildsDesc": "Chiqarilgan loyihalar — mahsulotlar, portfoliolar, dashboardlar."
   },
   "about": {
     "eyebrow": "Men haqimda",

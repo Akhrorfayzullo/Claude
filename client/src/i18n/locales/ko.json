@@ -15,15 +15,15 @@
   "hero": {
     "eyebrow": "풀스택 개발자 / React / Node.js / TypeScript",
     "title": "풀스택 웹앱을 만듭니다.",
-    "description": "AI는 빠르게 코드를 작성합니다. 저는 제품이 실제로 의미 있는지 확인합니다. AI보다 뛰어난 것이 아니라, AI와 함께 더 잘합니다.",
+    "description": "AI는 빠르게 움직입니다. 저는 실제로 출시되는 것이 의미 있는지 확인합니다.",
     "seeProjects": "프로젝트 보기",
     "resume": "이력서",
     "solarMode": "라이트 모드",
     "nightMode": "다크 모드",
-    "animatedUI": "애니메이션 UI + 탄탄한 백엔드 아키텍처",
+    "animatedUI": "다크 UI — 깔끔한 애니메이션, 실제 백엔드.",
     "buildStack": "기술 스택",
     "yearsDesc": "프로덕션급 웹 제품을 구축한 경력.",
-    "buildsDesc": "제품, 포트폴리오, 대시보드 작업에 걸친 선별된 프로젝트."
+    "buildsDesc": "출시된 프로젝트 — 제품, 포트폴리오, 대시보드."
   },
   "about": {
     "eyebrow": "소개",
