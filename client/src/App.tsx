@@ -29,7 +29,7 @@ import {
   type ContactSettings,
   type HeroStats,
 } from './lib/api.ts'
-import { trackEvent } from './lib/track.ts'
+import { trackEvent, initPageLeaveTracking } from './lib/track.ts'
 import type { ProfileImageSummary } from './types/profile-image.types.ts'
 import type { Project } from './types/project.types.ts'
 import type { ResumeSummary } from './types/resume.types.ts'
@@ -68,11 +68,12 @@ function App() {
     window.localStorage.setItem('portfolio-theme', theme)
   }, [theme])
 
-  // Track page visits (only on public site, not admin panel)
+  // Track page visits + scroll depth + time on page
   useEffect(() => {
-    if (!isAdminView) {
-      trackEvent('page_visit')
-    }
+    if (isAdminView) return
+    trackEvent('page_visit')
+    const cleanup = initPageLeaveTracking()
+    return cleanup
   }, [isAdminView])
 
   useEffect(() => {
