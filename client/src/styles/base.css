@@ -2,13 +2,36 @@
   --cursor-x: 50vw;
   --cursor-y: 50vh;
   --shell-width: min(1120px, calc(100vw - 40px));
-  font-family: "Segoe UI", "Trebuchet MS", sans-serif;
+  --font-body: 'Inter', 'Segoe UI', system-ui, sans-serif;
+  --font-display: 'Space Grotesk', 'Inter', 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Fira Code', 'Consolas', monospace;
+  font-family: var(--font-body);
   line-height: 1.5;
   font-weight: 400;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Display face for all headings and key numbers */
+h1,
+h2,
+h3,
+.brand,
+.hero-stat-number,
+.footer-name {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
+}
+
+/* Mono face for technical accents */
+.eyebrow,
+.project-label,
+.contact-label,
+.hero-stat-label,
+.hero-float-label {
+  font-family: var(--font-mono);
 }
 
 html[data-theme='dark'] {
@@ -65,6 +88,45 @@ html[data-theme='light'] {
 
 html {
   scroll-behavior: smooth;
+}
+
+/* Text selection in brand color */
+::selection {
+  background: color-mix(in srgb, var(--accent) 35%, transparent);
+  color: var(--text);
+}
+
+/* Custom scrollbar — thin, accent thumb */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: color-mix(in srgb, var(--accent) 45%, transparent) transparent;
+}
+
+body::-webkit-scrollbar {
+  width: 10px;
+}
+
+body::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+body::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--accent) 40%, transparent);
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+body::-webkit-scrollbar-thumb:hover {
+  background: color-mix(in srgb, var(--accent) 65%, transparent);
+  background-clip: content-box;
+}
+
+/* Visible keyboard focus — accessibility + polish */
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
 }
 
 body {
