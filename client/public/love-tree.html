@@ -24,24 +24,6 @@
     align-items: center;
     justify-content: center;
   }
-  #hint {
-    position: absolute;
-    bottom: 14%;
-    color: #D8A378;
-    font-family: 'Fraunces', serif;
-    font-style: italic;
-    font-weight: 300;
-    font-size: 1rem;
-    letter-spacing: 0.02em;
-    opacity: 0.85;
-    animation: pulseHint 2.2s ease-in-out infinite;
-    pointer-events: none;
-    text-align: center;
-  }
-  @keyframes pulseHint {
-    0%, 100% { opacity: 0.45; }
-    50% { opacity: 0.95; }
-  }
   canvas {
     cursor: pointer;
     max-width: 100%;
@@ -109,7 +91,6 @@
 <body>
 <div id="stage">
   <canvas id="canvas"></canvas>
-  <div id="hint">tap the seed</div>
   <div id="textPanel">
     <div id="line1"></div>
     <div id="line2"></div>
@@ -121,7 +102,6 @@
 (function () {
   const canvas = document.getElementById('canvas');
   const ctx = canvas.getContext('2d');
-  const hint = document.getElementById('hint');
   const textPanel = document.getElementById('textPanel');
   const line1El = document.getElementById('line1');
   const line2El = document.getElementById('line2');
@@ -145,8 +125,8 @@
   window.addEventListener('resize', resize);
   resize();
 
-  const seed = { r: 6, pulse: 0 };
-  function seedPos() { return { x: W / 2, y: H * 0.86 }; }
+  const seed = { r: 9, pulse: 0 };
+  function seedPos() { return { x: W / 2, y: H * 0.8 }; }
 
   let state = 'idle'; // idle -> growing -> blooming -> done
   let segments = [];
@@ -197,17 +177,27 @@
     seed.pulse = 0.5 + 0.5 * Math.sin(t / 400);
     ctx.save();
     ctx.beginPath();
-    const glowR = seed.r + 4 + seed.pulse * 3;
-    const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowR * 2.2);
-    grad.addColorStop(0, 'rgba(201,138,94,0.55)');
-    grad.addColorStop(1, 'rgba(201,138,94,0)');
+    const glowR = seed.r + 6 + seed.pulse * 5;
+    const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowR * 2.6);
+    grad.addColorStop(0, 'rgba(216,163,120,0.65)');
+    grad.addColorStop(1, 'rgba(216,163,120,0)');
     ctx.fillStyle = grad;
-    ctx.arc(p.x, p.y, glowR * 2.2, 0, Math.PI * 2);
+    ctx.arc(p.x, p.y, glowR * 2.6, 0, Math.PI * 2);
     ctx.fill();
     ctx.beginPath();
-    ctx.fillStyle = '#C98A5E';
+    ctx.fillStyle = '#E8B98C';
     ctx.arc(p.x, p.y, seed.r, 0, Math.PI * 2);
     ctx.fill();
+    ctx.restore();
+
+    const hintAlpha = 0.4 + 0.5 * (0.5 + 0.5 * Math.sin(t / 600));
+    ctx.save();
+    ctx.globalAlpha = hintAlpha;
+    ctx.fillStyle = '#D8A378';
+    ctx.font = 'italic 300 16px Fraunces, serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText('tap the seed', p.x, p.y + seed.r + 22);
     ctx.restore();
   }
 
@@ -319,7 +309,6 @@
 
   function plant() {
     if (state !== 'idle') return;
-    hint.style.display = 'none';
     blossoms = [];
     buildTree();
     state = 'growing';
@@ -335,7 +324,6 @@
     line1El.textContent = '';
     line2El.textContent = '';
     replayBtn.classList.remove('show');
-    hint.style.display = 'block';
     rafId = requestAnimationFrame(render);
   }
 
@@ -346,7 +334,7 @@
     const y = e.clientY - rect.top;
     const p = seedPos();
     const d = Math.hypot(x - p.x, y - p.y);
-    if (d < 30) plant();
+    if (d < 44) plant();
   });
 
   replayBtn.addEventListener('click', reset);
