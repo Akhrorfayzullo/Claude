@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Yes</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,500;1,9..144,400;1,9..144,600&family=Inter:wght@300;400;500&display=swap');
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0; height: 100%;
+    background: radial-gradient(circle at 50% 20%, #3A2430 0%, #241521 55%, #170D16 100%);
+    font-family: 'Inter', sans-serif;
+    overflow: hidden;
+    touch-action: manipulation;
+  }
+  #stage {
+    position: relative;
+    width: 100%;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  #hint {
+    position: absolute;
+    bottom: 14%;
+    color: #D8A378;
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 300;
+    font-size: 1rem;
+    letter-spacing: 0.02em;
+    opacity: 0.85;
+    animation: pulseHint 2.2s ease-in-out infinite;
+    pointer-events: none;
+    text-align: center;
+  }
+  @keyframes pulseHint {
+    0%, 100% { opacity: 0.45; }
+    50% { opacity: 0.95; }
+  }
+  canvas {
+    cursor: pointer;
+    max-width: 100%;
+  }
+  #textPanel {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    opacity: 0;
+    transition: opacity 1.1s ease;
+    pointer-events: none;
+    padding: 1.5rem;
+  }
+  #textPanel.show { opacity: 1; }
+  #line1 {
+    font-family: 'Fraunces', serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: clamp(3rem, 12vw, 5.5rem);
+    color: #F6EAE0;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    min-height: 1.1em;
+  }
+  #line2 {
+    margin-top: 0.75rem;
+    font-family: 'Fraunces', serif;
+    font-weight: 300;
+    font-size: clamp(1rem, 4vw, 1.4rem);
+    color: #D8A378;
+    min-height: 1.4em;
+  }
+  .cursor {
+    display: inline-block;
+    width: 2px;
+    background: currentColor;
+    margin-left: 2px;
+    animation: blink 0.9s step-end infinite;
+  }
+  @keyframes blink { 50% { opacity: 0; } }
+  #replay {
+    position: absolute;
+    bottom: 6%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: none;
+    border: 1px solid rgba(216,163,120,0.4);
+    color: #D8A378;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.5rem 1.1rem;
+    border-radius: 999px;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+    pointer-events: none;
+  }
+  #replay.show { opacity: 0.7; pointer-events: auto; cursor: pointer; }
+  #replay:hover { opacity: 1; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="canvas"></canvas>
+  <div id="hint">tap the seed</div>
+  <div id="textPanel">
+    <div id="line1"></div>
+    <div id="line2"></div>
+  </div>
+  <button id="replay">plant again</button>
+</div>
+
+<script>
+(function () {
+  const canvas = document.getElementById('canvas');
+  const ctx = canvas.getContext('2d');
+  const hint = document.getElementById('hint');
+  const textPanel = document.getElementById('textPanel');
+  const line1El = document.getElementById('line1');
+  const line2El = document.getElementById('line2');
+  const replayBtn = document.getElementById('replay');
+
+  const LINE1 = "Yes.";
+  const LINE2 = "Of course I love you.";
+
+  let W, H, DPR;
+  function resize() {
+    DPR = window.devicePixelRatio || 1;
+    const cssW = Math.min(420, window.innerWidth - 32);
+    const cssH = Math.min(window.innerHeight * 0.86, cssW * 1.25);
+    canvas.style.width = cssW + 'px';
+    canvas.style.height = cssH + 'px';
+    canvas.width = cssW * DPR;
+    canvas.height = cssH * DPR;
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    W = cssW; H = cssH;
+  }
+  window.addEventListener('resize', resize);
+  resize();
+
+  const seed = { r: 6, pulse: 0 };
+  function seedPos() { return { x: W / 2, y: H * 0.86 }; }
+
+  let state = 'idle'; // idle -> growing -> blooming -> done
+  let segments = [];
+  let blossoms = [];
+  let startTime = 0;
+  let growDuration = 0;
+  let bloomStart = 0;
+  let bloomDuration = 1300;
+  let rafId = null;
+
+  function rand(a, b) { return a + Math.random() * (b - a); }
+
+  function buildTree() {
+    segments = [];
+    const base = seedPos();
+    const maxDepth = 8;
+    let idCounter = 0;
+
+    function branch(x, y, len, angle, depth, parentEnd) {
+      const rad = (angle * Math.PI) / 180;
+      const x2 = x + len * Math.sin(rad);
+      const y2 = y - len * Math.cos(rad);
+      const seg = {
+        id: idCounter++, x1: x, y1: y, x2, y2, depth,
+        delay: depth * 130 + rand(0, 60),
+        duration: Math.max(90, 220 - depth * 12),
+      };
+      segments.push(seg);
+      if (depth < maxDepth) {
+        const nBranches = depth < 1 ? 2 : (Math.random() < 0.32 ? 3 : 2);
+        for (let i = 0; i < nBranches; i++) {
+          const spread = 16 + rand(0, 14);
+          const newAngle = angle + (i - (nBranches - 1) / 2) * spread + rand(-6, 6);
+          const newLen = len * rand(0.68, 0.8);
+          if (newLen > 3) branch(x2, y2, newLen, newAngle, depth + 1);
+        }
+      } else {
+        blossoms.push({ x: x2, y: y2, delay: seg.delay + seg.duration + rand(0, 300), scale: 0 });
+      }
+    }
+    branch(base.x, base.y, H * 0.16, 0, 0);
+
+    growDuration = Math.max(...segments.map(s => s.delay + s.duration));
+  }
+
+  function drawSeed(t) {
+    const p = seedPos();
+    seed.pulse = 0.5 + 0.5 * Math.sin(t / 400);
+    ctx.save();
+    ctx.beginPath();
+    const glowR = seed.r + 4 + seed.pulse * 3;
+    const grad = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, glowR * 2.2);
+    grad.addColorStop(0, 'rgba(201,138,94,0.55)');
+    grad.addColorStop(1, 'rgba(201,138,94,0)');
+    ctx.fillStyle = grad;
+    ctx.arc(p.x, p.y, glowR * 2.2, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.fillStyle = '#C98A5E';
+    ctx.arc(p.x, p.y, seed.r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+  }
+
+  function colorForDepth(depth) {
+    const tcol = [138, 92, 66];   // trunk brown
+    const acol = [216, 163, 120]; // accent gold at tips
+    const t = Math.min(depth / 8, 1);
+    const r = tcol[0] + (acol[0] - tcol[0]) * t;
+    const g = tcol[1] + (acol[1] - tcol[1]) * t;
+    const b = tcol[2] + (acol[2] - tcol[2]) * t;
+    return `rgb(${r|0},${g|0},${b|0})`;
+  }
+
+  function render(now) {
+    ctx.clearRect(0, 0, W, H);
+
+    if (state === 'idle') {
+      drawSeed(now);
+      rafId = requestAnimationFrame(render);
+      return;
+    }
+
+    const elapsed = now - startTime;
+
+    // draw ground glow at seed position (roots)
+    segments.forEach(seg => {
+      const local = elapsed - seg.delay;
+      if (local <= 0) return;
+      const t = Math.min(local / seg.duration, 1);
+      const cx = seg.x1 + (seg.x2 - seg.x1) * t;
+      const cy = seg.y1 + (seg.y2 - seg.y1) * t;
+      ctx.beginPath();
+      ctx.strokeStyle = colorForDepth(seg.depth);
+      ctx.lineWidth = Math.max(1, 6 - seg.depth * 0.7);
+      ctx.lineCap = 'round';
+      ctx.moveTo(seg.x1, seg.y1);
+      ctx.lineTo(cx, cy);
+      ctx.stroke();
+    });
+
+    if (state === 'growing' && elapsed >= growDuration) {
+      state = 'blooming';
+      bloomStart = now;
+    }
+
+    if (state === 'blooming' || state === 'done') {
+      const bElapsed = now - bloomStart;
+      let allDone = true;
+      blossoms.forEach(b => {
+        const local = bElapsed - b.delay;
+        if (local <= 0) { allDone = false; return; }
+        const t = Math.min(local / 500, 1);
+        if (t < 1) allDone = false;
+        const scale = Math.sin(t * Math.PI / 2);
+        const sway = Math.sin(now / 900 + b.x) * 1.5;
+        ctx.save();
+        ctx.beginPath();
+        const grad = ctx.createRadialGradient(b.x + sway, b.y, 0, b.x + sway, b.y, 9 * scale);
+        grad.addColorStop(0, 'rgba(246,234,224,0.95)');
+        grad.addColorStop(0.4, 'rgba(216,163,120,0.85)');
+        grad.addColorStop(1, 'rgba(201,138,94,0)');
+        ctx.fillStyle = grad;
+        ctx.arc(b.x + sway, b.y, 9 * scale, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.restore();
+      });
+
+      if (state === 'blooming' && allDone && bElapsed > bloomDuration) {
+        state = 'done';
+        revealText();
+      }
+    }
+
+    rafId = requestAnimationFrame(render);
+  }
+
+  function typeLine(el, text, speed, done) {
+    el.textContent = '';
+    const cursor = document.createElement('span');
+    cursor.className = 'cursor';
+    cursor.style.height = '1em';
+    let i = 0;
+    function step() {
+      el.textContent = text.slice(0, i);
+      el.appendChild(cursor);
+      i++;
+      if (i <= text.length) {
+        setTimeout(step, speed);
+      } else {
+        cursor.remove();
+        if (done) done();
+      }
+    }
+    step();
+  }
+
+  function revealText() {
+    textPanel.classList.add('show');
+    setTimeout(() => {
+      typeLine(line1El, LINE1, 90, () => {
+        setTimeout(() => {
+          typeLine(line2El, LINE2, 45, () => {
+            setTimeout(() => { replayBtn.classList.add('show'); }, 400);
+          });
+        }, 250);
+      });
+    }, 200);
+  }
+
+  function plant() {
+    if (state !== 'idle') return;
+    hint.style.display = 'none';
+    blossoms = [];
+    buildTree();
+    state = 'growing';
+    startTime = performance.now();
+  }
+
+  function reset() {
+    cancelAnimationFrame(rafId);
+    state = 'idle';
+    segments = [];
+    blossoms = [];
+    textPanel.classList.remove('show');
+    line1El.textContent = '';
+    line2El.textContent = '';
+    replayBtn.classList.remove('show');
+    hint.style.display = 'block';
+    rafId = requestAnimationFrame(render);
+  }
+
+  canvas.addEventListener('click', (e) => {
+    if (state !== 'idle') return;
+    const rect = canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    const p = seedPos();
+    const d = Math.hypot(x - p.x, y - p.y);
+    if (d < 30) plant();
+  });
+
+  replayBtn.addEventListener('click', reset);
+
+  rafId = requestAnimationFrame(render);
+})();
+</script>
+</body>
+</html>
