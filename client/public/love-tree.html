@@ -126,7 +126,7 @@
   resize();
 
   const seed = { r: 10, pulse: 0 };
-  function seedPos() { return { x: W / 2, y: H * 0.7 }; }
+  function seedPos() { return { x: W / 2, y: H * 0.52 }; }
 
   let state = 'idle'; // idle -> growing -> blooming -> done
   let segments = [];
@@ -167,7 +167,7 @@
         blossoms.push({ x: x2, y: y2, delay: seg.delay + seg.duration + rand(0, 300), scale: 0 });
       }
     }
-    branch(base.x, base.y, H * 0.11, 0, 0);
+    branch(base.x, base.y, Math.min(W, H) * 0.13, 0, 0);
 
     growDuration = Math.max(...segments.map(s => s.delay + s.duration));
   }
